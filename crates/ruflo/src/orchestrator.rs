@@ -10,7 +10,10 @@
 
 use std::collections::HashMap;
 
-use nstn_common::{try_deterministic_resolution, Domain, DomainClassifier, Event, EventLog, EventType};
+use nstn_common::{
+    try_deterministic_resolution, ConfidenceLadderRouter, Domain, DomainClassifier, Event,
+    EventLog, EventType, RouteDecision, router_from_trigger_configs,
+};
 
 use crate::{
     agent_factory::AgentHandle,
@@ -33,10 +36,24 @@ pub enum RouteResult {
         agent_name: String,
         /// The original message, potentially enriched with context.
         enriched_message: String,
+        /// Confidence from the router (0.0–1.0).
+        confidence: f64,
+        /// Which tier resolved this (1–5, or 0 if combined).
+        resolved_at_tier: u8,
     },
     /// Token budget exhausted — refuse processing.
     BudgetExhausted {
         message: String,
+    },
+    /// Ambiguous — no tier was confident enough. Falls to LLM classifier.
+    Ambiguous {
+        message: String,
+        /// Best-guess domain (may still be useful as a hint to the LLM).
+        best_guess: String,
+        /// Combined confidence score.
+        confidence: f64,
+        /// Per-domain scores for the LLM to consider.
+        scores: HashMap<String, f64>,
     },
 }
 
@@ -46,7 +63,11 @@ pub enum RouteResult {
 pub struct Orchestrator {
     /// Registered agents keyed by domain name.
     agents: HashMap<String, AgentHandle>,
+    /// Legacy keyword classifier (still used as domain resolver for
+    /// deterministic interceptions and as fallback).
     classifier: DomainClassifier,
+    /// Confidence-ladder router: AC → Regex → Weighted → Fuzzy → LLM.
+    ladder_router: ConfidenceLadderRouter,
     event_log: EventLog,
     budget: BudgetManager,
 }
@@ -59,15 +80,21 @@ impl Orchestrator {
     pub fn new(agents: Vec<AgentHandle>, max_tokens: u32) -> Self {
         let mut classifier = DomainClassifier::new();
         let mut agent_map = HashMap::with_capacity(agents.len());
+        let mut trigger_configs = Vec::new();
 
         for handle in agents {
             classifier.register(&handle.config.name, handle.config.triggers.clone());
+            trigger_configs.push((handle.config.name.clone(), handle.config.triggers.clone()));
             agent_map.insert(handle.config.name.clone(), handle);
         }
+
+        // Build the confidence-ladder router from agent trigger configs.
+        let ladder_router = router_from_trigger_configs(&trigger_configs);
 
         Self {
             agents: agent_map,
             classifier,
+            ladder_router,
             event_log: EventLog::new(),
             budget: BudgetManager::new(max_tokens),
         }
@@ -102,23 +129,13 @@ impl Orchestrator {
             };
         }
 
-        // ── Step 2: domain resolution ─────────────────────────────────────────
-        let domain = self.resolve_domain(message, domain_hint);
-        self.event_log
-            .record(Event::routing(session_id, domain.name(), message));
-
-        tracing::debug!(
-            session_id,
-            domain = domain.name(),
-            "routed to domain"
-        );
-
-        // ── Step 3: budget check ──────────────────────────────────────────────
+        // ── Step 2: budget check (before any expensive routing) ───────────────
         if let Err(BudgetError::Exhausted {
             tokens_used,
             max_tokens,
         }) = self.budget.check()
         {
+            let domain = self.resolve_domain(message, domain_hint);
             self.event_log.record(
                 Event::new(EventType::BudgetExhausted, "orchestrator", session_id, domain.name())
                     .with_payload("tokens_used", tokens_used.to_string())
@@ -133,21 +150,78 @@ impl Orchestrator {
             };
         }
 
-        // ── Step 4: agent lookup & enrichment ─────────────────────────────────
-        let agent_name = self
-            .agents
-            .get(domain.name()).map_or_else(|| {
-                // Fall back to "general" if the domain is unregistered.
-                self.agents
-                    .get("general").map_or_else(|| "general".to_string(), |h| h.config.name.clone())
-            }, |h| h.config.name.clone());
+        // ── Step 3: confidence-ladder routing ─────────────────────────────────
+        // If domain_hint is provided, skip the ladder and route directly.
+        if let Some(hinted) = Domain::from_hint(domain_hint) {
+            let agent_name = self.lookup_agent(hinted.name());
+            let enriched_message = self.enrich_message(message, &hinted);
+            self.event_log
+                .record(Event::routing(session_id, hinted.name(), message)
+                    .with_payload("source", "domain_hint".to_string()));
+            return RouteResult::AgentRoute {
+                domain: hinted.name().to_string(),
+                agent_name,
+                enriched_message,
+                confidence: 1.0,
+                resolved_at_tier: 0,
+            };
+        }
 
-        let enriched_message = self.enrich_message(message, &domain);
+        // Run the confidence ladder: AC → Regex → Weighted → Fuzzy
+        let decision = self.ladder_router.route(message);
 
-        RouteResult::AgentRoute {
-            domain: domain.name().to_string(),
-            agent_name,
-            enriched_message,
+        if let Some(ref domain_name) = decision.domain {
+            // Confident route
+            let agent_name = self.lookup_agent(domain_name);
+            let domain = Domain::new(domain_name.clone());
+            let enriched_message = self.enrich_message(message, &domain);
+
+            self.event_log
+                .record(Event::routing(session_id, domain_name, message)
+                    .with_payload("tier", decision.resolved_at_tier.to_string())
+                    .with_payload("confidence", format!("{:.3}", decision.confidence)));
+
+            tracing::debug!(
+                session_id,
+                domain = domain_name.as_str(),
+                confidence = decision.confidence,
+                tier = decision.resolved_at_tier,
+                "confidence-ladder routed"
+            );
+
+            RouteResult::AgentRoute {
+                domain: domain_name.clone(),
+                agent_name,
+                enriched_message,
+                confidence: decision.confidence,
+                resolved_at_tier: decision.resolved_at_tier,
+            }
+        } else {
+            // Ambiguous — LLM escape hatch
+            let best_guess = decision.scores.iter()
+                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .map(|(d, _)| d.clone())
+                .unwrap_or_else(|| "general".to_string());
+
+            self.event_log.record(
+                Event::routing(session_id, &best_guess, message)
+                    .with_payload("ambiguous", "true".to_string())
+                    .with_payload("confidence", format!("{:.3}", decision.confidence)),
+            );
+
+            tracing::info!(
+                session_id,
+                best_guess = best_guess.as_str(),
+                confidence = decision.confidence,
+                "ambiguous — falling to LLM classifier"
+            );
+
+            RouteResult::Ambiguous {
+                message: message.to_string(),
+                best_guess,
+                confidence: decision.confidence,
+                scores: decision.scores,
+            }
         }
     }
 
@@ -156,6 +230,17 @@ impl Orchestrator {
     /// Resolve a domain from an explicit hint or via classifier.
     fn resolve_domain(&self, message: &str, domain_hint: &str) -> Domain {
         Domain::from_hint(domain_hint).unwrap_or_else(|| self.classifier.classify(message))
+    }
+
+    /// Look up the agent name for a domain, falling back to "general".
+    fn lookup_agent(&self, domain: &str) -> String {
+        self.agents
+            .get(domain)
+            .map_or_else(
+                || self.agents.get("general")
+                    .map_or_else(|| "general".to_string(), |h| h.config.name.clone()),
+                |h| h.config.name.clone(),
+            )
     }
 
     /// Optionally enrich the message with budget context when the budget is
@@ -271,9 +356,10 @@ mod tests {
         let mut orch = build_orchestrator();
         let result = orch.route("s1", "help me write a verse", "");
         match result {
-            RouteResult::AgentRoute { domain, agent_name, .. } => {
+            RouteResult::AgentRoute { domain, agent_name, confidence, .. } => {
                 assert_eq!(domain, "music");
                 assert_eq!(agent_name, "music");
+                assert!(confidence > 0.0, "confidence should be positive");
             }
             other => panic!("expected AgentRoute, got {other:?}"),
         }
@@ -305,9 +391,10 @@ mod tests {
         // Message looks like music, but hint says investment
         let result = orch.route("s1", "help me write a verse", "investment");
         match result {
-            RouteResult::AgentRoute { domain, agent_name, .. } => {
+            RouteResult::AgentRoute { domain, agent_name, confidence, .. } => {
                 assert_eq!(domain, "investment");
                 assert_eq!(agent_name, "investment");
+                assert_eq!(confidence, 1.0); // hints are always 1.0 confidence
             }
             other => panic!("expected AgentRoute, got {other:?}"),
         }
@@ -315,9 +402,6 @@ mod tests {
 
     #[test]
     fn domain_hint_general_routes_to_general() {
-        // The classifier applies priority as a tiebreaker even at score 0,
-        // so a truly ambiguous message (no keywords) goes to the highest-priority
-        // domain.  An explicit domain_hint = "general" forces the general agent.
         let mut orch = build_orchestrator();
         let result = orch.route("s1", "what is the weather today?", "general");
         match result {
@@ -331,15 +415,30 @@ mod tests {
 
     #[test]
     fn unregistered_domain_hint_falls_back_to_agent_lookup() {
-        // A domain hint that maps to no registered agent falls back to "general".
         let mut orch = build_orchestrator();
-        // Route a message with a hint for an unregistered domain
         let result = orch.route("s1", "hello world", "unknown_domain");
-        // Should not panic; result is an AgentRoute (falls back to general agent)
         match result {
             RouteResult::AgentRoute { .. } => {}
             RouteResult::Deterministic { .. } => {}
             RouteResult::BudgetExhausted { .. } => {}
+            RouteResult::Ambiguous { .. } => {}
+        }
+    }
+
+    #[test]
+    fn ambiguous_message_returns_ambiguous_or_routes_to_general() {
+        let mut orch = build_orchestrator();
+        let result = orch.route("s1", "what is the weather today?", "");
+        match result {
+            RouteResult::Ambiguous { best_guess, confidence, .. } => {
+                // Low confidence, best guess available
+                assert!(confidence < 0.5, "ambiguous should have low confidence");
+                assert!(!best_guess.is_empty());
+            }
+            RouteResult::AgentRoute { .. } => {
+                // Also acceptable if a tier scored enough
+            }
+            other => panic!("expected Ambiguous or AgentRoute, got {other:?}"),
         }
     }
 
@@ -437,7 +536,8 @@ mod tests {
         );
         orch.record_turn_tokens(800); // 80% — in "yellow"
 
-        let result = orch.route("s1", "hello world", "");
+        // Use domain_hint to force an AgentRoute
+        let result = orch.route("s1", "hello world", "general");
         match result {
             RouteResult::AgentRoute { enriched_message, .. } => {
                 assert!(enriched_message.contains("BUDGET WARNING"));
@@ -450,7 +550,8 @@ mod tests {
     #[test]
     fn no_budget_warning_when_green() {
         let mut orch = build_orchestrator();
-        let result = orch.route("s1", "hello world", "");
+        // Use domain_hint to guarantee AgentRoute
+        let result = orch.route("s1", "hello world", "general");
         match result {
             RouteResult::AgentRoute { enriched_message, .. } => {
                 assert!(!enriched_message.contains("BUDGET WARNING"));
