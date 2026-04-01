@@ -1,0 +1,18 @@
+[agent]
+name = "general"
+description = "General purpose assistant — handles any request not matched by a domain agent."
+model = "claude-sonnet-4-20250514"
+permission_mode = "read_only"
+
+[agent.triggers]
+# No keywords — general is the fallback domain
+keywords = []
+priority = 0
+
+[agent.prompt]
+identity_file = "config/prompts/identity.md"
+domain_file = "config/prompts/general.md"
+
+[agent.tools]
+include = ["read_file"]
+deterministic = ["word_count", "reading_time_minutes", "json_validate", "url_validate", "current_datetime", "days_until"]

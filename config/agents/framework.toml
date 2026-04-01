@@ -1,0 +1,50 @@
+[agent]
+name = "framework"
+description = "Framework analyst — spiritual and conceptual distortion analysis, archetypes, sovereignty."
+model = "claude-sonnet-4-20250514"
+permission_mode = "workspace_write"
+
+[agent.triggers]
+keywords = [
+    "distortion",
+    "lattice",
+    "archetype",
+    "chain",
+    "elite",
+    "beast",
+    "dragon",
+    "false prophet",
+    "residue",
+    "seizure",
+    "sovereignty",
+    "presence",
+    "Babylon",
+    "counterfeit",
+    "bondage",
+    "stronghold",
+    "principality",
+    "dominion",
+    "warfare",
+    "deliverance",
+    "covenant",
+    "Kingdom",
+    "remnant",
+    "Jezebel",
+    "Leviathan",
+]
+priority = 15
+
+[agent.prompt]
+identity_file = "config/prompts/identity.md"
+domain_file = "config/prompts/framework.md"
+
+[agent.knowledge]
+domain_filter = "framework"
+auto_retrieve = true
+
+[agent.tools]
+include = ["read_file", "write_file"]
+deterministic = [
+    "word_count",
+    "days_until",
+]

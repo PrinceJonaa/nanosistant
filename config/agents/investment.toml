@@ -1,0 +1,52 @@
+[agent]
+name = "investment"
+description = "Investment analyst — equities, crypto, SEC filings, institutional flows, risk."
+model = "claude-sonnet-4-20250514"
+permission_mode = "workspace_write"
+
+[agent.triggers]
+keywords = [
+    "stock",
+    "trade",
+    "short",
+    "long",
+    "options",
+    "crypto",
+    "revenue",
+    "earnings",
+    "SEC",
+    "13F",
+    "institutional",
+    "disruption",
+    "gatekeeper",
+    "market",
+    "portfolio",
+    "equity",
+    "ticker",
+    "dividend",
+    "CAGR",
+    "valuation",
+    "risk",
+    "hedge",
+    "alpha",
+    "beta",
+]
+priority = 10
+
+[agent.prompt]
+identity_file = "config/prompts/identity.md"
+domain_file = "config/prompts/investment.md"
+
+[agent.knowledge]
+domain_filter = "investment"
+auto_retrieve = true
+
+[agent.tools]
+include = ["bash", "read_file", "write_file"]
+deterministic = [
+    "percentage_change",
+    "compound_annual_growth",
+    "position_size",
+    "session_cost_summary",
+    "days_until",
+]

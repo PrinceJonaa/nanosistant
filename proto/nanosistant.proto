@@ -1,0 +1,140 @@
+syntax = "proto3";
+package nanosistant;
+
+// ═══════════════════════════════════════
+// CROSS-TIER MESSAGES
+// ═══════════════════════════════════════
+
+// Edge → Brain
+message EdgeRequest {
+  string session_id = 1;
+  string user_message = 2;
+  string domain_hint = 3;
+  SessionContext session_context = 4;
+  uint32 max_tokens = 5;
+}
+
+// Brain → Edge
+message EdgeResponse {
+  string session_id = 1;
+  string response_text = 2;
+  string responding_agent = 3;
+  repeated Event events = 4;
+  BudgetStatus budget = 5;
+  HandoffToHuman handoff = 6;
+  CompletionStatus completion = 7;
+}
+
+// Brain → Knowledge
+message KnowledgeQuery {
+  string query_text = 1;
+  string domain_filter = 2;
+  uint32 max_results = 3;
+  float min_score = 4;
+}
+
+// Knowledge → Brain
+message KnowledgeResult {
+  repeated KnowledgeChunk chunks = 1;
+}
+
+message KnowledgeChunk {
+  string content = 1;
+  string source_section = 2;
+  string source_document = 3;
+  string domain = 4;
+  float relevance_score = 5;
+}
+
+// ═══════════════════════════════════════
+// AGENT HANDOFF SCHEMAS (within RuFlo)
+// ═══════════════════════════════════════
+
+message AgentHandoff {
+  string source_agent = 1;
+  string target_agent = 2;
+  string task_description = 3;
+  map<string, string> structured_data = 4;
+  repeated string context_keys = 5;
+  string user_intent = 6;
+  repeated string constraints = 7;
+  CompletionStatus source_completion = 8;
+  repeated string distortion_flags = 9;
+}
+
+// ═══════════════════════════════════════
+// SESSION & STATE
+// ═══════════════════════════════════════
+
+message SessionContext {
+  string state_label = 1;
+  string current_domain = 2;
+  map<string, string> active_project = 3;
+  repeated string recent_distortion_flags = 4;
+  uint32 turn_count = 5;
+}
+
+message BudgetStatus {
+  uint32 tokens_used = 1;
+  uint32 tokens_remaining = 2;
+  float estimated_cost_usd = 3;
+  string status = 4;
+}
+
+message HandoffToHuman {
+  string handoff_type = 1;
+  string instruction = 2;
+}
+
+enum CompletionStatus {
+  COMPLETE = 0;
+  PARTIAL_NEEDS_REVIEW = 1;
+  FAILED = 2;
+  HANDED_OFF = 3;
+}
+
+// ═══════════════════════════════════════
+// EVENT SYSTEM
+// ═══════════════════════════════════════
+
+message Event {
+  string event_id = 1;
+  string timestamp = 2;
+  string agent_id = 3;
+  string session_id = 4;
+  string thread_id = 5;
+  string event_type = 6;
+  string domain = 7;
+  map<string, string> payload = 8;
+  uint32 token_cost = 9;
+  uint32 latency_ms = 10;
+  bool was_deterministic = 11;
+  repeated string distortion_flags = 12;
+}
+
+// ═══════════════════════════════════════
+// gRPC SERVICES
+// ═══════════════════════════════════════
+
+service NanoClawService {
+  rpc ProcessMessage (EdgeRequest) returns (EdgeResponse);
+  rpc StreamMessage (EdgeRequest) returns (stream EdgeResponse);
+}
+
+service RuVectorService {
+  rpc Query (KnowledgeQuery) returns (KnowledgeResult);
+  rpc Ingest (IngestRequest) returns (IngestResponse);
+}
+
+message IngestRequest {
+  string document_path = 1;
+  string document_type = 2;
+  string domain = 3;
+  map<string, string> metadata = 4;
+}
+
+message IngestResponse {
+  uint32 chunks_ingested = 1;
+  bool success = 2;
+  string error_message = 3;
+}

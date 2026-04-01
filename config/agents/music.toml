@@ -1,0 +1,61 @@
+[agent]
+name = "music"
+description = "Music collaborator — songwriting, production, music theory, release strategy."
+model = "claude-sonnet-4-20250514"
+permission_mode = "workspace_write"
+
+[agent.triggers]
+keywords = [
+    "verse",
+    "hook",
+    "beat",
+    "mix",
+    "master",
+    "flow",
+    "cadence",
+    "bars",
+    "rhyme",
+    "BPM",
+    "808",
+    "EQ",
+    "compression",
+    "vocal chain",
+    "arrangement",
+    "genre",
+    "lyric",
+    "melody",
+    "chord",
+    "song",
+    "track",
+    "sample",
+    "plugin",
+    "DAW",
+    "MIDI",
+]
+priority = 10
+
+[agent.prompt]
+identity_file = "config/prompts/identity.md"
+domain_file = "config/prompts/music.md"
+
+[agent.knowledge]
+domain_filter = "music"
+auto_retrieve = true
+
+[agent.tools]
+include = ["bash", "read_file", "write_file"]
+deterministic = [
+    "bpm_to_bar_duration",
+    "song_bar_count",
+    "scale_degrees",
+    "chord_to_roman",
+    "roman_to_chord",
+    "transpose",
+    "note_to_frequency",
+    "frequency_to_band",
+    "syllable_count",
+    "density_lambda",
+    "streaming_loudness_check",
+    "release_timeline",
+    "isrc_validate",
+]

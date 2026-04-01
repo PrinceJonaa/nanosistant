@@ -1,0 +1,27 @@
+# Nanosistant v0.1.0 Settings
+
+[system]
+name = "Nanosistant"
+version = "0.1.0"
+codename = "NSTN-1"
+
+[budget]
+max_tokens_per_session = 100000
+warning_threshold_pct = 75
+critical_threshold_pct = 90
+
+[models]
+primary = "claude-sonnet-4-20250514"
+reasoning = "claude-opus-4-6"
+fast = "claude-haiku-4-0"
+
+[knowledge]
+# Qdrant connection (when self-hosted)
+# qdrant_url = "http://localhost:6334"
+# For v0.1.0: in-memory store
+store_type = "memory"
+
+[edge]
+# RuFlo brain endpoint for gRPC
+brain_endpoint = "http://localhost:50051"
+offline_queue_max = 100

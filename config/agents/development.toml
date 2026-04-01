@@ -1,0 +1,56 @@
+[agent]
+name = "development"
+description = "Software engineer — code review, architecture, debugging, deployment, APIs."
+model = "claude-sonnet-4-20250514"
+permission_mode = "workspace_write"
+
+[agent.triggers]
+keywords = [
+    "code",
+    "rust",
+    "swift",
+    "typescript",
+    "bug",
+    "deploy",
+    "build",
+    "test",
+    "API",
+    "database",
+    "architecture",
+    "refactor",
+    "PR",
+    "git",
+    "function",
+    "struct",
+    "class",
+    "module",
+    "crate",
+    "package",
+    "compile",
+    "error",
+    "stack trace",
+    "CI",
+    "CD",
+    "pipeline",
+    "docker",
+    "kubernetes",
+    "migration",
+    "schema",
+]
+priority = 10
+
+[agent.prompt]
+identity_file = "config/prompts/identity.md"
+domain_file = "config/prompts/development.md"
+
+[agent.knowledge]
+domain_filter = "development"
+auto_retrieve = true
+
+[agent.tools]
+include = ["bash", "read_file", "write_file", "glob", "grep"]
+deterministic = [
+    "word_count",
+    "json_validate",
+    "url_validate",
+]
