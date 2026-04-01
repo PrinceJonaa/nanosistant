@@ -1,6 +1,31 @@
+# Build artifacts
 /target/
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
 *.swp
 *.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Agent worktrees (development)
 .claw-agents/
-Cargo.lock
+
+# Environment
+.env
+.env.local
+
+# Node (ruflo submodule build artifacts)
+node_modules/
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+*.profraw

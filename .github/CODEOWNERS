@@ -1,0 +1,10 @@
+# Nanosistant Code Owners
+# All changes require review from Prince Jona.
+
+* @PrinceJonaa
+
+# Proto contracts require extra scrutiny (cross-tier compatibility)
+proto/ @PrinceJonaa
+
+# Agent configs
+config/ @PrinceJonaa
