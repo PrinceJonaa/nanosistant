@@ -1,23 +1,27 @@
-//! Deterministic orchestrator — the core routing brain of `RuFlo`.
+//! Deterministic orchestrator — the core routing brain of Nanosistant.
 //!
-//! This is pure deterministic Rust code.  **No LLM inference happens here.**
+//! Rust wraps the confidence ladder plus ruflo. The routing pipeline:
 //!
-//! Routing pipeline:
-//! 1. Try deterministic resolution via `nstn_common::try_deterministic_resolution`.
-//! 2. Resolve domain from `domain_hint` or `DomainClassifier`.
-//! 3. Check budget.
-//! 4. Return `RouteResult`.
+//! 1. Try deterministic resolution (zero tokens, pure code).
+//! 2. Run confidence ladder (AC → Regex → Weighted → Fuzzy).
+//!    If confident → route directly.
+//! 3. If ambiguous → fall to ruflo MCP (Q-learning, MoE, semantic).
+//!    ruflo returns a routing decision → Rust executes it.
+//!
+//! Rust is always the entry point, always the exit point.
+//! ruflo never receives traffic directly.
 
 use std::collections::HashMap;
 
 use nstn_common::{
     try_deterministic_resolution, ConfidenceLadderRouter, Domain, DomainClassifier, Event,
-    EventLog, EventType, RouteDecision, router_from_trigger_configs,
+    EventLog, EventType, router_from_trigger_configs,
 };
 
 use crate::{
     agent_factory::AgentHandle,
     budget::{BudgetError, BudgetManager},
+    ruflo_proxy::{ProxyError, RufloProxy},
 };
 
 // ─── RouteResult ──────────────────────────────────────────────────────────────
@@ -60,24 +64,41 @@ pub enum RouteResult {
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
 
 /// The `RuFlo` orchestrator routes messages to agents deterministically.
+///
+/// Architecture: Rust wraps the confidence ladder plus ruflo.
+/// - Deterministic functions intercept closed-form queries (zero tokens).
+/// - Confidence ladder (AC/Regex/Weighted/Fuzzy) handles clear-domain queries.
+/// - ruflo MCP (Q-learning/MoE/semantic) handles ambiguous queries.
+/// - Rust is always the entry and exit point.
 pub struct Orchestrator {
     /// Registered agents keyed by domain name.
     agents: HashMap<String, AgentHandle>,
-    /// Legacy keyword classifier (still used as domain resolver for
-    /// deterministic interceptions and as fallback).
+    /// Legacy keyword classifier (used for deterministic interception domain tagging).
     classifier: DomainClassifier,
-    /// Confidence-ladder router: AC → Regex → Weighted → Fuzzy → LLM.
+    /// Confidence-ladder router: AC → Regex → Weighted → Fuzzy.
     ladder_router: ConfidenceLadderRouter,
+    /// Proxy to ruflo's MCP tools (Q-learning, MoE, semantic, swarm, memory).
+    /// Falls back gracefully when ruflo is unavailable (offline mode).
+    ruflo: RufloProxy,
     event_log: EventLog,
     budget: BudgetManager,
 }
 
 impl Orchestrator {
-    /// Construct an orchestrator from a set of agent handles and a token cap.
-    ///
-    /// The `DomainClassifier` is built from the agents' trigger configurations.
+    /// Create an orchestrator with ruflo in offline mode.
+    /// Deterministic + confidence ladder only, no MCP fallback.
     #[must_use]
     pub fn new(agents: Vec<AgentHandle>, max_tokens: u32) -> Self {
+        Self::with_ruflo(agents, max_tokens, RufloProxy::offline())
+    }
+
+    /// Create an orchestrator with a live ruflo proxy.
+    /// Ambiguous queries will fall through to ruflo's routing stack.
+    pub fn with_ruflo(
+        agents: Vec<AgentHandle>,
+        max_tokens: u32,
+        ruflo: RufloProxy,
+    ) -> Self {
         let mut classifier = DomainClassifier::new();
         let mut agent_map = HashMap::with_capacity(agents.len());
         let mut trigger_configs = Vec::new();
@@ -88,13 +109,13 @@ impl Orchestrator {
             agent_map.insert(handle.config.name.clone(), handle);
         }
 
-        // Build the confidence-ladder router from agent trigger configs.
         let ladder_router = router_from_trigger_configs(&trigger_configs);
 
         Self {
             agents: agent_map,
             classifier,
             ladder_router,
+            ruflo,
             event_log: EventLog::new(),
             budget: BudgetManager::new(max_tokens),
         }
@@ -197,35 +218,102 @@ impl Orchestrator {
                 resolved_at_tier: decision.resolved_at_tier,
             }
         } else {
-            // Ambiguous — LLM escape hatch
-            let best_guess = decision.scores.iter()
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
-                .map(|(d, _)| d.clone())
-                .unwrap_or_else(|| "general".to_string());
-
-            self.event_log.record(
-                Event::routing(session_id, &best_guess, message)
-                    .with_payload("ambiguous", "true".to_string())
-                    .with_payload("confidence", format!("{:.3}", decision.confidence)),
-            );
-
-            tracing::info!(
-                session_id,
-                best_guess = best_guess.as_str(),
-                confidence = decision.confidence,
-                "ambiguous — falling to LLM classifier"
-            );
-
-            RouteResult::Ambiguous {
-                message: message.to_string(),
-                best_guess,
-                confidence: decision.confidence,
-                scores: decision.scores,
-            }
+            // Ambiguous — try ruflo's routing stack before giving up.
+            self.route_via_ruflo(session_id, message, &decision)
         }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// Try routing through ruflo's MCP stack (Q-learning, MoE, semantic).
+    /// If ruflo is unavailable or fails, fall back to Ambiguous.
+    fn route_via_ruflo(
+        &mut self,
+        session_id: &str,
+        message: &str,
+        ladder_decision: &nstn_common::RouteDecision,
+    ) -> RouteResult {
+        // Build context from the ladder's scores for ruflo
+        let mut context = HashMap::new();
+        for (domain, score) in &ladder_decision.scores {
+            context.insert(format!("ladder_{domain}"), format!("{score:.3}"));
+        }
+        context.insert("ladder_confidence".to_string(), format!("{:.3}", ladder_decision.confidence));
+
+        match self.ruflo.route_message(message, &context) {
+            Ok(ruflo_result) => {
+                let agent_name = self.lookup_agent(&ruflo_result.route);
+                let domain = Domain::new(ruflo_result.route.clone());
+                let enriched_message = self.enrich_message(message, &domain);
+
+                self.event_log.record(
+                    Event::routing(session_id, &ruflo_result.route, message)
+                        .with_payload("source", "ruflo".to_string())
+                        .with_payload("ruflo_router", format!("{:?}", ruflo_result.router_type))
+                        .with_payload("confidence", format!("{:.3}", ruflo_result.confidence)),
+                );
+
+                tracing::info!(
+                    session_id,
+                    domain = ruflo_result.route.as_str(),
+                    confidence = ruflo_result.confidence,
+                    router = ?ruflo_result.router_type,
+                    "ruflo resolved ambiguous route"
+                );
+
+                RouteResult::AgentRoute {
+                    domain: ruflo_result.route,
+                    agent_name,
+                    enriched_message,
+                    confidence: ruflo_result.confidence,
+                    resolved_at_tier: 6, // tier 6 = ruflo MCP
+                }
+            }
+            Err(ProxyError::Unavailable) => {
+                // ruflo not running — return Ambiguous with ladder's best guess
+                self.ambiguous_fallback(session_id, message, ladder_decision)
+            }
+            Err(e) => {
+                tracing::warn!(session_id, error = %e, "ruflo routing failed, falling back");
+                self.ambiguous_fallback(session_id, message, ladder_decision)
+            }
+        }
+    }
+
+    /// Final fallback when both the ladder and ruflo can't resolve.
+    fn ambiguous_fallback(
+        &mut self,
+        session_id: &str,
+        message: &str,
+        decision: &nstn_common::RouteDecision,
+    ) -> RouteResult {
+        let best_guess = decision
+            .scores
+            .iter()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(d, _)| d.clone())
+            .unwrap_or_else(|| "general".to_string());
+
+        self.event_log.record(
+            Event::routing(session_id, &best_guess, message)
+                .with_payload("ambiguous", "true".to_string())
+                .with_payload("confidence", format!("{:.3}", decision.confidence)),
+        );
+
+        tracing::info!(
+            session_id,
+            best_guess = best_guess.as_str(),
+            confidence = decision.confidence,
+            "ambiguous — no router resolved, LLM classifier needed"
+        );
+
+        RouteResult::Ambiguous {
+            message: message.to_string(),
+            best_guess,
+            confidence: decision.confidence,
+            scores: decision.scores.clone(),
+        }
+    }
 
     /// Resolve a domain from an explicit hint or via classifier.
     fn resolve_domain(&self, message: &str, domain_hint: &str) -> Domain {
@@ -282,6 +370,17 @@ impl Orchestrator {
     /// Mutable reference to the budget manager.
     pub fn budget_mut(&mut self) -> &mut BudgetManager {
         &mut self.budget
+    }
+
+    /// Whether ruflo MCP is available for fallback routing.
+    #[must_use]
+    pub fn ruflo_available(&self) -> bool {
+        self.ruflo.is_available()
+    }
+
+    /// Mutable access to the ruflo proxy (for lifecycle management).
+    pub fn ruflo_mut(&mut self) -> &mut RufloProxy {
+        &mut self.ruflo
     }
 
     /// Number of registered agents.

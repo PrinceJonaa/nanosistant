@@ -1,18 +1,24 @@
-//! `RuFlo` — the deterministic brain tier of Nanosistant.
+//! `RuFlo` — the brain tier of Nanosistant.
 //!
-//! Contains the orchestrator, agent configuration system,
-//! agent factory, budget manager, and watchdog.
+//! Rust wraps the confidence ladder plus ruflo:
+//! - Deterministic functions (zero tokens)
+//! - Confidence ladder (AC/Regex/Weighted/Fuzzy)
+//! - ruflo MCP fallback (Q-learning/MoE/semantic via stdio JSON-RPC)
 //!
-//! Everything in this crate is deterministic Rust — no LLM inference.
+//! Also: agent configuration, budget management, watchdog.
 
 pub mod agent_config;
 pub mod agent_factory;
 pub mod budget;
+pub mod mcp_bridge;
 pub mod orchestrator;
+pub mod ruflo_proxy;
 pub mod watchdog;
 
 pub use agent_config::{load_agent_configs, AgentConfig, KnowledgeConfig, PromptConfig, ToolsConfig};
 pub use agent_factory::AgentHandle;
 pub use budget::{BudgetError, BudgetManager, BudgetState};
+pub use mcp_bridge::{BridgeConfig, McpBridge};
 pub use orchestrator::{Orchestrator, RouteResult};
+pub use ruflo_proxy::RufloProxy;
 pub use watchdog::{AlertSeverity, Watchdog, WatchdogAlert, WatchdogPattern};
