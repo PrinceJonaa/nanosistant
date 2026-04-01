@@ -7,6 +7,7 @@ use std::collections::HashMap;
 
 use uuid::Uuid;
 
+use crate::embeddings::EmbeddingProvider;
 use crate::store::StoredChunk;
 
 /// Stateless document ingester.
@@ -31,6 +32,31 @@ impl DocumentIngester {
         document_path: &str,
         domain: &str,
         doc_type: &str,
+    ) -> Vec<StoredChunk> {
+        Self::ingest_with_embeddings(content, document_path, domain, doc_type, None)
+    }
+
+    /// Ingest `content` and optionally generate embeddings for each chunk.
+    ///
+    /// When `embedder` is `Some`, each chunk's `embedding` field is populated
+    /// by calling [`EmbeddingProvider::embed`] on the chunk content.  Embedding
+    /// errors are logged as warnings and do not abort ingestion — the chunk is
+    /// stored with `embedding: None` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `content`       — Raw markdown text.
+    /// * `document_path` — Path or name of the source document.
+    /// * `domain`        — Semantic domain tag.
+    /// * `doc_type`      — Freeform type descriptor stored in metadata.
+    /// * `embedder`      — Optional embedding provider.
+    #[must_use]
+    pub fn ingest_with_embeddings(
+        content: &str,
+        document_path: &str,
+        domain: &str,
+        doc_type: &str,
+        embedder: Option<&dyn EmbeddingProvider>,
     ) -> Vec<StoredChunk> {
         // Split the document into sections using `## ` as the delimiter.
         // We keep `## ` at the start of each section so the header is visible.
@@ -69,6 +95,17 @@ impl DocumentIngester {
             metadata.insert("doc_type".to_owned(), doc_type.to_owned());
             metadata.insert("section_index".to_owned(), idx.to_string());
 
+            // Generate embedding if a provider was supplied.
+            let embedding = embedder.and_then(|emb| {
+                match emb.embed(&section_text) {
+                    Ok(v) => Some(v),
+                    Err(e) => {
+                        tracing::warn!("embedding failed for section '{source_section}': {e}");
+                        None
+                    }
+                }
+            });
+
             chunks.push(StoredChunk {
                 id: Uuid::new_v4().to_string(),
                 content: section_text,
@@ -76,6 +113,7 @@ impl DocumentIngester {
                 source_section,
                 source_document: document_path.to_owned(),
                 metadata,
+                embedding,
             });
         }
 
@@ -86,6 +124,7 @@ impl DocumentIngester {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::embeddings::HashEmbedding;
 
     const SAMPLE_DOC: &str = r#"# Introduction
 
@@ -150,6 +189,52 @@ For power users who need custom pipelines.
         let chunks = DocumentIngester::ingest(SAMPLE_DOC, "guide.md", "framework", "tutorial");
         for chunk in &chunks {
             assert_eq!(chunk.metadata.get("doc_type").map(String::as_str), Some("tutorial"));
+        }
+    }
+
+    #[test]
+    fn ingest_without_embedder_produces_none_embeddings() {
+        let chunks = DocumentIngester::ingest(SAMPLE_DOC, "guide.md", "framework", "docs");
+        assert!(chunks.iter().all(|c| c.embedding.is_none()));
+    }
+
+    #[test]
+    fn ingest_with_embeddings_populates_embedding_field() {
+        let embedder = HashEmbedding::new(64);
+        let chunks = DocumentIngester::ingest_with_embeddings(
+            SAMPLE_DOC,
+            "guide.md",
+            "framework",
+            "docs",
+            Some(&embedder),
+        );
+        assert_eq!(chunks.len(), 4);
+        for chunk in &chunks {
+            let emb = chunk.embedding.as_ref().expect("embedding should be set");
+            assert_eq!(emb.len(), 64);
+        }
+    }
+
+    #[test]
+    fn ingest_with_embeddings_consistent_for_same_content() {
+        let embedder = HashEmbedding::new(32);
+        let chunks_a = DocumentIngester::ingest_with_embeddings(
+            SAMPLE_DOC,
+            "guide.md",
+            "framework",
+            "docs",
+            Some(&embedder),
+        );
+        let chunks_b = DocumentIngester::ingest_with_embeddings(
+            SAMPLE_DOC,
+            "guide.md",
+            "framework",
+            "docs",
+            Some(&embedder),
+        );
+        // Embeddings must be deterministic.
+        for (a, b) in chunks_a.iter().zip(chunks_b.iter()) {
+            assert_eq!(a.embedding, b.embedding);
         }
     }
 }

@@ -83,6 +83,43 @@ pub struct RufloSwarmStatus {
     pub tasks_completed: u32,
 }
 
+/// Handle for a spawned swarm agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmAgentHandle {
+    /// Unique identifier for the spawned agent.
+    pub agent_id: String,
+    /// The type of agent that was spawned.
+    pub agent_type: String,
+    /// Initial status of the agent (typically `"running"`).
+    pub status: String,
+}
+
+/// Status snapshot of a swarm agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmAgentStatus {
+    /// Unique identifier for the agent.
+    pub agent_id: String,
+    /// Current lifecycle status: `"running"`, `"completed"`, or `"failed"`.
+    pub status: String,
+    /// Progress fraction in the range `[0.0, 1.0]`.
+    pub progress: f64,
+    /// Optional textual result when status is `"completed"`.
+    pub result: Option<String>,
+}
+
+/// Result of coordinating a multi-agent task through ruflo's swarm.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmCoordinationResult {
+    /// Unique identifier for the coordination task.
+    pub task_id: String,
+    /// The topology used for coordination (e.g. `"mesh"`, `"star"`, `"pipeline"`).
+    pub topology: String,
+    /// IDs of the agents assigned to this task.
+    pub agents_assigned: Vec<String>,
+    /// Current status of the coordination task.
+    pub status: String,
+}
+
 // ═══════════════════════════════════════
 // Ruflo proxy
 // ═══════════════════════════════════════
@@ -240,6 +277,106 @@ impl RufloProxy {
 
     // ── Swarm ──
 
+    /// Spawn a new agent in ruflo's swarm.
+    ///
+    /// Returns `ProxyError::Unavailable` when ruflo is offline.
+    pub fn swarm_spawn_agent(
+        &mut self,
+        agent_type: &str,
+        task: &str,
+    ) -> Result<SwarmAgentHandle, ProxyError> {
+        if !self.bridge.is_running() {
+            return Err(ProxyError::Unavailable);
+        }
+
+        let args = serde_json::json!({
+            "agent_type": agent_type,
+            "task": task,
+        });
+
+        let result = self.bridge.call_tool("agent_spawn", args)?;
+
+        let text = result
+            .content
+            .first()
+            .and_then(|c| c.text.as_ref())
+            .ok_or_else(|| ProxyError::UnexpectedResult("empty content".into()))?;
+
+        serde_json::from_str(text).map_err(|e| ProxyError::UnexpectedResult(e.to_string()))
+    }
+
+    /// Get the status of a swarm agent.
+    ///
+    /// Returns `ProxyError::Unavailable` when ruflo is offline.
+    pub fn swarm_agent_status(
+        &mut self,
+        agent_id: &str,
+    ) -> Result<SwarmAgentStatus, ProxyError> {
+        if !self.bridge.is_running() {
+            return Err(ProxyError::Unavailable);
+        }
+
+        let args = serde_json::json!({
+            "agent_id": agent_id,
+        });
+
+        let result = self.bridge.call_tool("agent_status", args)?;
+
+        let text = result
+            .content
+            .first()
+            .and_then(|c| c.text.as_ref())
+            .ok_or_else(|| ProxyError::UnexpectedResult("empty content".into()))?;
+
+        serde_json::from_str(text).map_err(|e| ProxyError::UnexpectedResult(e.to_string()))
+    }
+
+    /// Coordinate a multi-agent task across the swarm.
+    ///
+    /// Returns `ProxyError::Unavailable` when ruflo is offline.
+    pub fn swarm_coordinate(
+        &mut self,
+        task: &str,
+        agents: &[String],
+        topology: &str,
+    ) -> Result<SwarmCoordinationResult, ProxyError> {
+        if !self.bridge.is_running() {
+            return Err(ProxyError::Unavailable);
+        }
+
+        let args = serde_json::json!({
+            "task": task,
+            "agents": agents,
+            "topology": topology,
+        });
+
+        let result = self.bridge.call_tool("swarm_coordinate", args)?;
+
+        let text = result
+            .content
+            .first()
+            .and_then(|c| c.text.as_ref())
+            .ok_or_else(|| ProxyError::UnexpectedResult("empty content".into()))?;
+
+        serde_json::from_str(text).map_err(|e| ProxyError::UnexpectedResult(e.to_string()))
+    }
+
+    /// Cancel a running swarm task.
+    ///
+    /// Returns `ProxyError::Unavailable` when ruflo is offline.
+    pub fn swarm_cancel(&mut self, task_id: &str) -> Result<(), ProxyError> {
+        if !self.bridge.is_running() {
+            return Err(ProxyError::Unavailable);
+        }
+
+        let args = serde_json::json!({
+            "task_id": task_id,
+        });
+
+        self.bridge.call_tool("swarm_cancel", args)?;
+        Ok(())
+    }
+
     /// Get the current swarm status from ruflo.
     pub fn swarm_status(&mut self) -> Result<RufloSwarmStatus, ProxyError> {
         if !self.bridge.is_running() {
@@ -351,5 +488,92 @@ mod tests {
         let sel: RufloModelSelection = serde_json::from_str(json).unwrap();
         assert_eq!(sel.model, "claude-sonnet-4-20250514");
         assert!(sel.complexity_score < 0.5);
+    }
+
+    // ── Swarm type serialization / deserialization ────────────────────────────────
+
+    #[test]
+    fn swarm_agent_handle_serializes_and_deserializes() {
+        let handle = SwarmAgentHandle {
+            agent_id: "agent-001".into(),
+            agent_type: "researcher".into(),
+            status: "running".into(),
+        };
+        let json = serde_json::to_string(&handle).unwrap();
+        let decoded: SwarmAgentHandle = serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded.agent_id, "agent-001");
+        assert_eq!(decoded.agent_type, "researcher");
+        assert_eq!(decoded.status, "running");
+    }
+
+    #[test]
+    fn swarm_agent_status_serializes_and_deserializes() {
+        let status = SwarmAgentStatus {
+            agent_id: "agent-002".into(),
+            status: "completed".into(),
+            progress: 1.0,
+            result: Some("Task finished successfully.".into()),
+        };
+        let json = serde_json::to_string(&status).unwrap();
+        let decoded: SwarmAgentStatus = serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded.agent_id, "agent-002");
+        assert_eq!(decoded.status, "completed");
+        assert!((decoded.progress - 1.0).abs() < f64::EPSILON);
+        assert_eq!(decoded.result.as_deref(), Some("Task finished successfully."));
+    }
+
+    #[test]
+    fn swarm_agent_status_with_no_result_deserializes() {
+        let json = r#"{"agent_id":"a1","status":"running","progress":0.5,"result":null}"#;
+        let status: SwarmAgentStatus = serde_json::from_str(json).unwrap();
+        assert_eq!(status.status, "running");
+        assert!(status.result.is_none());
+    }
+
+    #[test]
+    fn swarm_coordination_result_serializes_and_deserializes() {
+        let coord = SwarmCoordinationResult {
+            task_id: "task-xyz".into(),
+            topology: "mesh".into(),
+            agents_assigned: vec!["agent-001".into(), "agent-002".into()],
+            status: "running".into(),
+        };
+        let json = serde_json::to_string(&coord).unwrap();
+        let decoded: SwarmCoordinationResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded.task_id, "task-xyz");
+        assert_eq!(decoded.topology, "mesh");
+        assert_eq!(decoded.agents_assigned.len(), 2);
+        assert_eq!(decoded.status, "running");
+    }
+
+    // ── Swarm methods return Unavailable when offline ──────────────────────
+
+    #[test]
+    fn swarm_spawn_agent_unavailable_when_offline() {
+        let mut proxy = RufloProxy::offline();
+        let result = proxy.swarm_spawn_agent("researcher", "do some research");
+        assert!(matches!(result.unwrap_err(), ProxyError::Unavailable));
+    }
+
+    #[test]
+    fn swarm_agent_status_unavailable_when_offline() {
+        let mut proxy = RufloProxy::offline();
+        let result = proxy.swarm_agent_status("agent-001");
+        assert!(matches!(result.unwrap_err(), ProxyError::Unavailable));
+    }
+
+    #[test]
+    fn swarm_coordinate_unavailable_when_offline() {
+        let mut proxy = RufloProxy::offline();
+        let agents = vec!["agent-001".to_string(), "agent-002".to_string()];
+        let result = proxy.swarm_coordinate("analyse data", &agents, "mesh");
+        assert!(matches!(result.unwrap_err(), ProxyError::Unavailable));
+    }
+
+    #[test]
+    fn swarm_cancel_unavailable_when_offline() {
+        let mut proxy = RufloProxy::offline();
+        let result = proxy.swarm_cancel("task-xyz");
+        assert!(matches!(result.unwrap_err(), ProxyError::Unavailable));
     }
 }

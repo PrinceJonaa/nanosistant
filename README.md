@@ -128,7 +128,7 @@ Ruflo runs as a child process — Rust is always the entry point, always the exi
 | `crates/ruvector` | `nstn-ruvector` | ~600 | 11 | Vector store, document ingestion, domain-filtered search |
 | `crates/server` | `nstn-server` | ~500 | 2 | axum HTTP/SSE server |
 
-**Total: 289 tests, ~25,900 lines across 52 source files.**
+**Total: 350 tests, ~28,200 lines across 55 source files.**
 
 ---
 
@@ -238,7 +238,7 @@ nanosistant/
 
 ## Roadmap
 
-### v0.1.0 (current)
+### v0.1.0
 - [x] Three-tier architecture (NanoClaw, RuFlo, RuVector)
 - [x] Confidence-ladder router (AC → Regex → Weighted → Fuzzy)
 - [x] ruflo MCP integration (submodule + stdio bridge)
@@ -247,15 +247,16 @@ nanosistant/
 - [x] Protobuf contracts
 - [x] 289 passing tests
 
-### v0.2.0 (next)
-- [ ] Wire gRPC transport (tonic) for NanoClaw ↔ RuFlo
-- [ ] Qdrant integration for RuVector (replace in-memory store)
-- [ ] Embedding-based semantic search
-- [ ] MCP tool server in RuVector
-- [ ] Wire ConversationRuntimes into orchestrator agent handles
-- [ ] ruflo swarm coordination integration
+### v0.2.0 (current)
+- [x] Real gRPC transport (tonic) for NanoClaw ↔ RuFlo
+- [x] Qdrant integration for RuVector (with in-memory fallback)
+- [x] Embedding-based semantic search (HashEmbedding + cosine similarity)
+- [x] MCP tool server in RuVector (4 tools: query, ingest, domains, stats)
+- [x] ConversationRuntimes wired into orchestrator (AgentRuntime trait + execute())
+- [x] ruflo swarm coordination (spawn, status, coordinate, cancel)
+- [x] 350 passing tests
 
-### v0.3.0
+### v0.3.0 (next)
 - [ ] iOS NanoClaw client (Swift)
 - [ ] Knowledge ingestion pipeline (framework docs, project repos)
 - [ ] Session persistence and cross-device sync

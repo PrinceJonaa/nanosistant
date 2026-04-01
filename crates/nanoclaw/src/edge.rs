@@ -135,7 +135,7 @@ impl EdgeRuntime {
         }
 
         // Step 2 — forward to RuFlo if a client is configured.
-        if let Some(ref client) = self.grpc_client {
+        if let Some(ref mut client) = self.grpc_client {
             let request = EdgeRequest {
                 message: message.to_owned(),
                 domain_hint: domain_hint.to_owned(),

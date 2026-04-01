@@ -1,4 +1,7 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    prost_build::compile_protos(&["../../proto/nanosistant.proto"], &["../../proto/"])?;
+    tonic_build::configure()
+        .build_server(true)
+        .build_client(true)
+        .compile_protos(&["../../proto/nanosistant.proto"], &["../../proto/"])?;
     Ok(())
 }

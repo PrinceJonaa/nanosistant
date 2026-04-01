@@ -10,15 +10,20 @@
 pub mod agent_config;
 pub mod agent_factory;
 pub mod budget;
+pub mod grpc_server;
 pub mod mcp_bridge;
 pub mod orchestrator;
 pub mod ruflo_proxy;
 pub mod watchdog;
 
 pub use agent_config::{load_agent_configs, AgentConfig, KnowledgeConfig, PromptConfig, ToolsConfig};
-pub use agent_factory::AgentHandle;
+pub use agent_factory::{AgentFactory, AgentHandle, AgentRuntime, AgentTurnResult, MockAgentRuntime};
 pub use budget::{BudgetError, BudgetManager, BudgetState};
+pub use grpc_server::NanoClawGrpcService;
 pub use mcp_bridge::{BridgeConfig, McpBridge};
 pub use orchestrator::{Orchestrator, RouteResult};
-pub use ruflo_proxy::RufloProxy;
+pub use ruflo_proxy::{
+    RufloProxy, RufloRouteResult, RufloRouterType, RufloModelSelection, RufloSwarmStatus,
+    SwarmAgentHandle, SwarmAgentStatus, SwarmCoordinationResult,
+};
 pub use watchdog::{AlertSeverity, Watchdog, WatchdogAlert, WatchdogPattern};

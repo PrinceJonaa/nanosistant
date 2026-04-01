@@ -1,35 +1,145 @@
 //! Agent factory — constructs `AgentHandle` instances from `AgentConfig`.
 //!
-//! `AgentHandle` is a lightweight wrapper that holds the config and resolved
-//! domain.  When the full runtime crate is available, a `ConversationRuntime`
-//! will be attached here; for now the handle is the unit of orchestration.
+//! `AgentHandle` now holds an optional `AgentRuntime` that the orchestrator
+//! can call `run_turn()` on.  Use `with_mock_runtime()` to attach a
+//! `MockAgentRuntime` for testing or offline mode.
 
 use nstn_common::{Domain, DomainClassifier};
 
 use crate::agent_config::AgentConfig;
 
+// ─── AgentTurnResult ──────────────────────────────────────────────────────────
+
+/// The result of one agent turn.
+#[derive(Debug, Clone)]
+pub struct AgentTurnResult {
+    /// The textual response produced by the agent.
+    pub response_text: String,
+    /// Names of tools called during this turn.
+    pub tool_calls: Vec<String>,
+    /// Tokens consumed.
+    pub tokens_used: u32,
+    /// Agentic iterations performed.
+    pub iterations: usize,
+}
+
+// ─── AgentRuntime trait ───────────────────────────────────────────────────────
+
+/// Trait for abstracting over different runtime implementations.
+pub trait AgentRuntime: Send {
+    /// Execute one conversation turn for the given `message`.
+    ///
+    /// # Errors
+    /// Returns an error string if the turn cannot be completed.
+    fn run_turn(&mut self, message: &str) -> Result<AgentTurnResult, String>;
+
+    /// Total tokens consumed across all turns so far.
+    fn session_tokens(&self) -> usize;
+}
+
+// ─── MockAgentRuntime ─────────────────────────────────────────────────────────
+
+/// A mock runtime that returns canned responses.
+///
+/// Used in tests and when no real API client is available.
+pub struct MockAgentRuntime {
+    domain: String,
+    turn_count: usize,
+}
+
+impl MockAgentRuntime {
+    /// Create a new mock runtime for the given domain.
+    #[must_use]
+    pub fn new(domain: impl Into<String>) -> Self {
+        Self {
+            domain: domain.into(),
+            turn_count: 0,
+        }
+    }
+}
+
+impl AgentRuntime for MockAgentRuntime {
+    fn run_turn(&mut self, message: &str) -> Result<AgentTurnResult, String> {
+        self.turn_count += 1;
+        Ok(AgentTurnResult {
+            response_text: format!(
+                "[{}] Processed: {}",
+                self.domain,
+                &message[..message.len().min(50)]
+            ),
+            tool_calls: vec![],
+            tokens_used: 100,
+            iterations: 1,
+        })
+    }
+
+    fn session_tokens(&self) -> usize {
+        self.turn_count * 100
+    }
+}
+
 // ─── AgentHandle ──────────────────────────────────────────────────────────────
 
-/// A resolved agent with its config and domain identity.
+/// A resolved agent with its config, domain identity, and optional runtime.
 ///
 /// The `domain` field is derived from the agent's `name` field — each agent
 /// owns exactly one domain.  The `DomainClassifier` inside the orchestrator
 /// routes messages to the correct handle.
-#[derive(Debug, Clone)]
 pub struct AgentHandle {
     pub config: AgentConfig,
     pub domain: Domain,
-    // Runtime would be attached when the full runtime is available.
+    /// The actual runtime for this agent.
+    ///
+    /// `None` until the agent is initialised with an API client.
+    /// Use `with_mock_runtime()` for testing/offline mode.
+    runtime: Option<Box<dyn AgentRuntime>>,
+}
+
+impl std::fmt::Debug for AgentHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AgentHandle")
+            .field("config", &self.config)
+            .field("domain", &self.domain)
+            .field("has_runtime", &self.runtime.is_some())
+            .finish()
+    }
 }
 
 impl AgentHandle {
-    /// Create an `AgentHandle` from an `AgentConfig`.
+    /// Create an `AgentHandle` from an `AgentConfig` with no runtime attached.
     ///
     /// The domain is taken directly from `config.name`.
     #[must_use]
     pub fn from_config(config: AgentConfig) -> Self {
         let domain = Domain::new(config.name.clone());
-        Self { config, domain }
+        Self {
+            config,
+            domain,
+            runtime: None,
+        }
+    }
+
+    /// Attach a `MockAgentRuntime` (for testing or offline mode).
+    #[must_use]
+    pub fn with_mock_runtime(mut self) -> Self {
+        let domain = self.domain.name().to_string();
+        self.runtime = Some(Box::new(MockAgentRuntime::new(domain)));
+        self
+    }
+
+    /// Attach a custom runtime.
+    #[must_use]
+    pub fn with_runtime(mut self, runtime: Box<dyn AgentRuntime>) -> Self {
+        self.runtime = Some(runtime);
+        self
+    }
+
+    /// Get a mutable reference to the runtime, if one is attached.
+    pub fn runtime_mut(&mut self) -> Option<&mut dyn AgentRuntime> {
+        match self.runtime {
+            Some(ref mut r) => Some(r.as_mut()),
+            None => None,
+        }
     }
 
     /// Return the agent name.
@@ -54,6 +164,9 @@ pub struct AgentFactory;
 impl AgentFactory {
     /// Convert a list of `AgentConfig` into `AgentHandle` instances and
     /// populate a `DomainClassifier` with their trigger configurations.
+    ///
+    /// All handles are created without a runtime attached; attach one with
+    /// `AgentHandle::with_mock_runtime()` or `AgentHandle::with_runtime()`.
     #[must_use]
     pub fn build(configs: Vec<AgentConfig>) -> (Vec<AgentHandle>, DomainClassifier) {
         let mut classifier = DomainClassifier::new();
@@ -64,6 +177,19 @@ impl AgentFactory {
             handles.push(AgentHandle::from_config(config));
         }
 
+        (handles, classifier)
+    }
+
+    /// Like `build`, but attaches mock runtimes to all handles.
+    ///
+    /// Convenient for tests and offline scenarios.
+    #[must_use]
+    pub fn build_with_mocks(configs: Vec<AgentConfig>) -> (Vec<AgentHandle>, DomainClassifier) {
+        let (handles, classifier) = Self::build(configs);
+        let handles = handles
+            .into_iter()
+            .map(AgentHandle::with_mock_runtime)
+            .collect();
         (handles, classifier)
     }
 }
@@ -150,5 +276,63 @@ mod tests {
         cfg.permission_mode = "workspace_write".to_string();
         let handle = AgentHandle::from_config(cfg);
         assert_eq!(handle.permission_mode(), "workspace_write");
+    }
+
+    // ── New runtime tests ────────────────────────────────────────────────────
+
+    #[test]
+    fn mock_runtime_returns_domain_prefixed_response() {
+        let mut rt = MockAgentRuntime::new("music");
+        let result = rt.run_turn("write me a verse").expect("should succeed");
+        assert!(result.response_text.starts_with("[music]"));
+        assert_eq!(result.tokens_used, 100);
+        assert_eq!(result.iterations, 1);
+    }
+
+    #[test]
+    fn mock_runtime_tracks_session_tokens() {
+        let mut rt = MockAgentRuntime::new("general");
+        assert_eq!(rt.session_tokens(), 0);
+        let _ = rt.run_turn("first turn");
+        assert_eq!(rt.session_tokens(), 100);
+        let _ = rt.run_turn("second turn");
+        assert_eq!(rt.session_tokens(), 200);
+    }
+
+    #[test]
+    fn handle_with_mock_runtime_can_run_turn() {
+        let cfg = make_config("music", vec!["verse"], 10);
+        let mut handle = AgentHandle::from_config(cfg).with_mock_runtime();
+        let rt = handle.runtime_mut().expect("should have runtime");
+        let result = rt.run_turn("help me write a chorus").expect("should succeed");
+        assert!(!result.response_text.is_empty());
+    }
+
+    #[test]
+    fn handle_without_runtime_returns_none() {
+        let cfg = make_config("music", vec!["verse"], 10);
+        let mut handle = AgentHandle::from_config(cfg);
+        assert!(handle.runtime_mut().is_none());
+    }
+
+    #[test]
+    fn factory_build_with_mocks_attaches_runtimes() {
+        let configs = vec![
+            make_config("music", vec!["verse"], 10),
+            make_config("general", vec![], 0),
+        ];
+        let (mut handles, _) = AgentFactory::build_with_mocks(configs);
+        for handle in &mut handles {
+            assert!(handle.runtime_mut().is_some(), "each handle should have a runtime");
+        }
+    }
+
+    #[test]
+    fn mock_runtime_truncates_long_message() {
+        let mut rt = MockAgentRuntime::new("general");
+        let long_msg = "a".repeat(200);
+        let result = rt.run_turn(&long_msg).expect("should succeed");
+        // The preview is capped at 50 chars
+        assert!(result.response_text.len() < 100);
     }
 }

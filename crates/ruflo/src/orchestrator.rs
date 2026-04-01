@@ -19,9 +19,9 @@ use nstn_common::{
 };
 
 use crate::{
-    agent_factory::AgentHandle,
+    agent_factory::{AgentHandle, AgentTurnResult},
     budget::{BudgetError, BudgetManager},
-    ruflo_proxy::{ProxyError, RufloProxy},
+    ruflo_proxy::{ProxyError, RufloProxy, RufloSwarmStatus, SwarmCoordinationResult},
 };
 
 // ─── RouteResult ──────────────────────────────────────────────────────────────
@@ -383,6 +383,41 @@ impl Orchestrator {
         &mut self.ruflo
     }
 
+    // ── Swarm coordination ────────────────────────────────────────────────────
+
+    /// Coordinate a multi-agent task through ruflo's swarm.
+    ///
+    /// `agent_types` is a list of agent type names to assign to the task.
+    /// `topology` describes how the agents should be connected
+    /// (e.g. `"mesh"`, `"star"`, `"pipeline"`).
+    ///
+    /// Only available when ruflo is running.
+    ///
+    /// # Errors
+    /// Returns an error string when ruflo is unavailable or the swarm call fails.
+    pub fn coordinate_swarm(
+        &mut self,
+        task: &str,
+        agent_types: &[String],
+        topology: &str,
+    ) -> Result<SwarmCoordinationResult, String> {
+        self.ruflo
+            .swarm_coordinate(task, agent_types, topology)
+            .map_err(|e| format!("swarm coordination failed: {e}"))
+    }
+
+    /// Check swarm status through ruflo.
+    ///
+    /// Only available when ruflo is running.
+    ///
+    /// # Errors
+    /// Returns an error string when ruflo is unavailable or the call fails.
+    pub fn swarm_status(&mut self) -> Result<RufloSwarmStatus, String> {
+        self.ruflo
+            .swarm_status()
+            .map_err(|e| format!("swarm status failed: {e}"))
+    }
+
     /// Number of registered agents.
     #[must_use]
     pub fn agent_count(&self) -> usize {
@@ -393,6 +428,60 @@ impl Orchestrator {
     #[must_use]
     pub fn has_agent(&self, domain: &str) -> bool {
         self.agents.contains_key(domain)
+    }
+
+    /// Execute a routed message on the appropriate agent.
+    ///
+    /// Call this after `route()` returns a [`RouteResult`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string when:
+    /// - The named agent is not found in the registry.
+    /// - The agent has no runtime attached.
+    /// - The runtime's `run_turn()` fails.
+    /// - The result variant cannot be executed (e.g. `BudgetExhausted`).
+    pub fn execute(&mut self, route: &RouteResult) -> Result<AgentTurnResult, String> {
+        match route {
+            RouteResult::AgentRoute {
+                agent_name,
+                enriched_message,
+                ..
+            } => {
+                let handle = self
+                    .agents
+                    .get_mut(agent_name)
+                    .ok_or_else(|| format!("agent '{agent_name}' not found"))?;
+                let runtime = handle
+                    .runtime_mut()
+                    .ok_or_else(|| format!("agent '{agent_name}' has no runtime"))?;
+                let result = runtime.run_turn(enriched_message)?;
+                self.budget.record_usage(result.tokens_used);
+                Ok(result)
+            }
+            RouteResult::Deterministic { response, .. } => Ok(AgentTurnResult {
+                response_text: response.clone(),
+                tool_calls: vec![],
+                tokens_used: 0,
+                iterations: 0,
+            }),
+            RouteResult::BudgetExhausted { message } => {
+                Err(format!("cannot execute: budget exhausted — {message}"))
+            }
+            RouteResult::Ambiguous { message, best_guess, .. } => {
+                // Fall back to the best-guess agent if it has a runtime.
+                let handle = self
+                    .agents
+                    .get_mut(best_guess)
+                    .ok_or_else(|| format!("ambiguous: best-guess agent '{best_guess}' not found"))?;
+                let runtime = handle
+                    .runtime_mut()
+                    .ok_or_else(|| format!("ambiguous: agent '{best_guess}' has no runtime"))?;
+                let result = runtime.run_turn(message)?;
+                self.budget.record_usage(result.tokens_used);
+                Ok(result)
+            }
+        }
     }
 }
 
@@ -657,6 +746,83 @@ mod tests {
             }
             other => panic!("expected AgentRoute, got {other:?}"),
         }
+    }
+
+    // ── execute() ──────────────────────────────────────────────────────────
+
+    fn make_handle_with_mock(name: &str, keywords: Vec<&str>, priority: u32) -> AgentHandle {
+        make_handle(name, keywords, priority).with_mock_runtime()
+    }
+
+    fn build_orchestrator_with_mocks() -> Orchestrator {
+        Orchestrator::new(
+            vec![
+                make_handle_with_mock("general", vec![], 0),
+                make_handle_with_mock("music", vec!["verse", "hook", "beat", "bpm"], 10),
+                make_handle_with_mock(
+                    "investment",
+                    vec!["stock", "earnings", "trade", "market"],
+                    10,
+                ),
+                make_handle_with_mock(
+                    "development",
+                    vec!["code", "rust", "bug", "deploy", "test"],
+                    10,
+                ),
+            ],
+            10_000,
+        )
+    }
+
+    #[test]
+    fn execute_deterministic_returns_response_without_calling_runtime() {
+        let mut orch = build_orchestrator_with_mocks();
+        let route = orch.route("s1", "c major scale", "");
+        let result = orch.execute(&route).expect("should succeed");
+        assert!(result.response_text.contains("C - D - E - F - G - A - B"));
+        assert_eq!(result.tokens_used, 0); // deterministic → no tokens
+    }
+
+    #[test]
+    fn execute_agent_route_calls_mock_runtime() {
+        let mut orch = build_orchestrator_with_mocks();
+        let route = orch.route("s1", "help me write a verse", "");
+        assert!(matches!(route, RouteResult::AgentRoute { .. }));
+        let result = orch.execute(&route).expect("should succeed");
+        assert!(!result.response_text.is_empty());
+        assert_eq!(result.tokens_used, 100);
+    }
+
+    #[test]
+    fn execute_records_token_usage_in_budget() {
+        let mut orch = build_orchestrator_with_mocks();
+        let route = orch.route("s1", "analyze the stock earnings report", "");
+        let initial_used = orch.budget().tokens_used();
+        orch.execute(&route).expect("should succeed");
+        assert_eq!(orch.budget().tokens_used(), initial_used + 100);
+    }
+
+    #[test]
+    fn execute_agent_route_without_runtime_returns_error() {
+        let mut orch = build_orchestrator(); // NO mock runtimes
+        let route = orch.route("s1", "help me write a verse", "");
+        if let RouteResult::AgentRoute { .. } = &route {
+            let err = orch.execute(&route).unwrap_err();
+            assert!(err.contains("has no runtime"));
+        }
+        // If the route was Deterministic that's fine too (no error expected)
+    }
+
+    #[test]
+    fn execute_budget_exhausted_returns_error() {
+        let mut orch = Orchestrator::new(
+            vec![make_handle_with_mock("general", vec![], 0)],
+            100,
+        );
+        orch.record_turn_tokens(100);
+        let route = orch.route("s1", "what is the weather?", "");
+        let err = orch.execute(&route).unwrap_err();
+        assert!(err.contains("budget exhausted"));
     }
 
     // ── Accessors ──────────────────────────────────────────────────────────

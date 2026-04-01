@@ -4,7 +4,8 @@ pub mod events;
 pub mod handoff;
 pub mod router;
 
-/// Generated protobuf types from nanosistant.proto
+/// Generated protobuf + tonic types from nanosistant.proto
+#[allow(clippy::all, clippy::pedantic)]
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/nanosistant.rs"));
 }
