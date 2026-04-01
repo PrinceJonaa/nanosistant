@@ -1,0 +1,25 @@
+# Knowledge ingestion configuration
+# Each [[source]] block defines one document source to ingest.
+
+[[source]]
+path = "config/prompts"
+domain = "system"
+doc_type = "reference"
+extensions = ["md"]
+recursive = false
+
+# Example: ingest framework documents
+# [[source]]
+# path = "/path/to/framework-docs"
+# domain = "framework"
+# doc_type = "framework"
+# extensions = ["md"]
+# recursive = true
+
+# Example: ingest project repositories
+# [[source]]
+# path = "/path/to/project"
+# domain = "development"
+# doc_type = "project"
+# extensions = ["rs", "toml", "md"]
+# recursive = true

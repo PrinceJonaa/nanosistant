@@ -139,11 +139,28 @@ pub struct SendMessageRequest {
 #[must_use]
 pub fn app(state: AppState) -> Router {
     Router::new()
+        .route("/health", get(health_handler))
         .route("/sessions", post(create_session).get(list_sessions))
         .route("/sessions/{id}", get(get_session))
         .route("/sessions/{id}/events", get(stream_session_events))
         .route("/sessions/{id}/message", post(send_message))
         .with_state(state)
+}
+
+/// Convenience constructor used by the `nstn-server` binary.
+///
+/// Builds the router with a default [`AppState`].
+#[must_use]
+pub fn build_router() -> Router {
+    app(AppState::new())
+}
+
+async fn health_handler() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "status": "ok",
+        "version": env!("CARGO_PKG_VERSION"),
+        "service": "nanosistant"
+    }))
 }
 
 async fn create_session(

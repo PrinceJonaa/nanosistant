@@ -12,6 +12,7 @@ pub mod embeddings;
 pub mod grpc_server;
 pub mod ingest;
 pub mod mcp_server;
+pub mod pipeline;
 pub mod qdrant;
 pub mod store;
 
@@ -20,4 +21,5 @@ pub use grpc_server::RuVectorGrpcService;
 pub use ingest::DocumentIngester;
 pub use mcp_server::McpServer;
 pub use qdrant::QdrantBackend;
+pub use pipeline::{IngestionPipeline, IngestionResult, IngestionSource};
 pub use store::{InMemoryBackend, KnowledgeChunk, StoreError, StoredChunk, VectorBackend, VectorStore};

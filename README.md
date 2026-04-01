@@ -128,7 +128,7 @@ Ruflo runs as a child process — Rust is always the entry point, always the exi
 | `crates/ruvector` | `nstn-ruvector` | ~600 | 11 | Vector store, document ingestion, domain-filtered search |
 | `crates/server` | `nstn-server` | ~500 | 2 | axum HTTP/SSE server |
 
-**Total: 350 tests, ~28,200 lines across 55 source files.**
+**Total: 365+ tests, ~31,200 lines across 69 source files (Rust + Swift).**
 
 ---
 
@@ -247,7 +247,7 @@ nanosistant/
 - [x] Protobuf contracts
 - [x] 289 passing tests
 
-### v0.2.0 (current)
+### v0.2.0
 - [x] Real gRPC transport (tonic) for NanoClaw ↔ RuFlo
 - [x] Qdrant integration for RuVector (with in-memory fallback)
 - [x] Embedding-based semantic search (HashEmbedding + cosine similarity)
@@ -256,11 +256,19 @@ nanosistant/
 - [x] ruflo swarm coordination (spawn, status, coordinate, cancel)
 - [x] 350 passing tests
 
-### v0.3.0 (next)
-- [ ] iOS NanoClaw client (Swift)
-- [ ] Knowledge ingestion pipeline (framework docs, project repos)
-- [ ] Session persistence and cross-device sync
-- [ ] Production deployment (infrastructure-agnostic)
+### v0.3.0 (current)
+- [x] iOS NanoClaw client (Swift Package, 2,100 lines)
+- [x] Knowledge ingestion pipeline (TOML-configurable, directory recursive)
+- [x] Session persistence (JSON per-session, save/load/delete/recent)
+- [x] Production deployment (Dockerfile, docker-compose, health endpoint)
+- [x] 365+ tests across Rust and Swift
+
+### v0.4.0 (next)
+- [ ] Real LLM API integration (wire ConversationRuntime to Anthropic API)
+- [ ] Live ruflo MCP connection (spawn and test end-to-end)
+- [ ] Native gRPC in Swift client (replace HTTP bridge)
+- [ ] Knowledge ingestion for operator’s framework docs (all 22 files)
+- [ ] Session sync across devices via gRPC
 
 ---
 

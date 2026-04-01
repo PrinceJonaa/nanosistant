@@ -14,6 +14,7 @@ pub mod grpc_server;
 pub mod mcp_bridge;
 pub mod orchestrator;
 pub mod ruflo_proxy;
+pub mod session_store;
 pub mod watchdog;
 
 pub use agent_config::{load_agent_configs, AgentConfig, KnowledgeConfig, PromptConfig, ToolsConfig};
@@ -26,4 +27,5 @@ pub use ruflo_proxy::{
     RufloProxy, RufloRouteResult, RufloRouterType, RufloModelSelection, RufloSwarmStatus,
     SwarmAgentHandle, SwarmAgentStatus, SwarmCoordinationResult,
 };
+pub use session_store::{PersistedSession, SessionMessage, SessionStore};
 pub use watchdog::{AlertSeverity, Watchdog, WatchdogAlert, WatchdogPattern};

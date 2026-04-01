@@ -3,6 +3,47 @@
 All notable changes to Nanosistant are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-04-01
+
+### Added
+
+#### iOS NanoClaw Client (Swift)
+- `clients/ios/NanoClawKit/` — Swift Package (iOS 17+, macOS 14+)
+- `NanoClawClient` — main entry point: deterministic → brain → offline-queue pipeline
+- `DeterministicResolver` — full port of Rust deterministic functions to Swift
+- `MusicTheory` — BPM, scales, chords, transpose, frequency bands, syllables (identical output to Rust)
+- `BrainClient` — async HTTP client to RuFlo server
+- `OfflineQueue` — bounded FIFO with JSON disk persistence, oldest-evicts overflow
+- `SessionManager` — session state with message history, disk save/load
+- `Models` — EdgeRequest, EdgeResponse, BudgetStatus, RouteSource (Codable, Sendable)
+- 30+ Swift test assertions across 3 test files
+
+#### Knowledge Ingestion Pipeline
+- `IngestionPipeline` — processes multiple file/directory sources into VectorStore
+- `IngestionSource` config — path, domain, doc_type, extensions, recursive flag
+- `IngestionPipeline::from_config()` — parses TOML `[[source]]` tables
+- `config/ingestion.toml` — default configuration with examples
+- 8 tests covering single file, directory, recursion, extension filter, stats
+
+#### Session Persistence
+- `SessionStore` — save/restore sessions to JSON files on disk
+- `PersistedSession` — session_id, timestamps, domain, turn count, message history
+- Per-session JSON file storage with load_all/save/delete/recent
+- 7 tests covering full lifecycle
+
+#### Production Deployment
+- `Dockerfile` — multi-stage build (rust:1.75 builder → debian:bookworm-slim)
+- `docker-compose.yml` — nanosistant + qdrant services with named volumes
+- `nstn-server` binary — axum server with health endpoint
+- `GET /health` — returns `{status, version, service}`
+
+### Stats
+- 365 Rust tests + Swift tests passing
+- 29,100+ Rust lines + 2,100 Swift lines across 69 source files
+- 9 Rust crates + 1 Swift package
+
+---
+
 ## [0.2.0] - 2026-04-01
 
 ### Added
