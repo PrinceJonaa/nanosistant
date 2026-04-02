@@ -3,6 +3,7 @@ pub mod domain;
 pub mod events;
 pub mod handoff;
 pub mod router;
+pub mod typed_ir;
 
 /// Generated protobuf + tonic types from nanosistant.proto
 #[allow(clippy::all, clippy::pedantic)]

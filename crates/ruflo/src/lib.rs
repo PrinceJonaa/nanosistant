@@ -10,8 +10,14 @@
 pub mod agent_config;
 pub mod agent_factory;
 pub mod budget;
+pub mod dreamer;
+pub mod dreamer_applier;
+pub mod evaluators;
+pub mod external_mirror;
+pub mod god_time;
 pub mod grpc_server;
 pub mod mcp_bridge;
+pub mod memory;
 pub mod orchestrator;
 pub mod ruflo_proxy;
 pub mod session_store;
@@ -28,4 +34,20 @@ pub use ruflo_proxy::{
     SwarmAgentHandle, SwarmAgentStatus, SwarmCoordinationResult,
 };
 pub use session_store::{PersistedSession, SessionMessage, SessionStore};
+pub use memory::{
+    EpisodicStore, ExecutionPlan, IdentityPolicy, L1Event, L3PatchProposal,
+    LessonCard, LessonInstruction, MemorySystem, Outcome, PatchStatus, PlanStep,
+    ProposedChange, RiskLevel, SemanticMemory, StepStatus, TaskType, ToolCallRecord,
+    ToolCallStatus, WorkingContext,
+};
 pub use watchdog::{AlertSeverity, Watchdog, WatchdogAlert, WatchdogPattern};
+pub use god_time::{GodTimeCheckResult, check_god_time};
+pub use evaluators::{HumanSignalCollector, StructuralEvaluator, evaluate_for_learning};
+pub use dreamer::{
+    ClassificationConfidence, DreamerInput, DreamerLessonCard, DreamingReport,
+    FailureClassification, HealthSignal, InsufficientEvidence, LensAnalysis, OrchestratorTask,
+    Partition, Priority, RoutingWeightHint, SystemMode, TaskContext, ToolDescriptionFix,
+    validate_dreaming_report,
+};
+pub use dreamer_applier::{ApplyResult, DreamerApplier};
+pub use external_mirror::{ExternalMirror, MirrorNotification, NotificationType};
