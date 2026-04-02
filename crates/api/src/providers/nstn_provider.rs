@@ -44,7 +44,7 @@ impl AuthSource {
             (Some(api_key), None) => Ok(Self::ApiKey(api_key)),
             (None, Some(bearer_token)) => Ok(Self::BearerToken(bearer_token)),
             (None, None) => Err(ApiError::missing_credentials(
-                "Claw",
+                "Nanosistant",
                 &["ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY"],
             )),
         }
@@ -106,7 +106,7 @@ impl From<OAuthTokenSet> for AuthSource {
 }
 
 #[derive(Debug, Clone)]
-pub struct ClawApiClient {
+pub struct NstnApiClient {
     http: reqwest::Client,
     auth: AuthSource,
     base_url: String,
@@ -115,7 +115,7 @@ pub struct ClawApiClient {
     max_backoff: Duration,
 }
 
-impl ClawApiClient {
+impl NstnApiClient {
     #[must_use]
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
@@ -368,7 +368,7 @@ impl AuthSource {
             }
             Ok(Some(token_set)) => Ok(Self::BearerToken(token_set.access_token)),
             Ok(None) => Err(ApiError::missing_credentials(
-                "Claw",
+                "Nanosistant",
                 &["ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY"],
             )),
             Err(error) => Err(error),
@@ -415,7 +415,7 @@ where
 
     let Some(token_set) = load_saved_oauth_token()? else {
         return Err(ApiError::missing_credentials(
-            "Claw",
+            "Nanosistant",
             &["ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY"],
         ));
     };
@@ -446,7 +446,7 @@ fn resolve_saved_oauth_token_set(
     let Some(refresh_token) = token_set.refresh_token.clone() else {
         return Err(ApiError::ExpiredOAuthToken);
     };
-    let client = ClawApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
+    let client = NstnApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
     let refreshed = client_runtime_block_on(async {
         client
             .refresh_oauth_token(
@@ -515,7 +515,7 @@ fn read_api_key() -> Result<String, ApiError> {
         .or_else(|| auth.bearer_token())
         .map(ToOwned::to_owned)
         .ok_or(ApiError::missing_credentials(
-            "Claw",
+            "Nanosistant",
             &["ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY"],
         ))
 }
@@ -540,7 +540,7 @@ fn request_id_from_headers(headers: &reqwest::header::HeaderMap) -> Option<Strin
         .map(ToOwned::to_owned)
 }
 
-impl Provider for ClawApiClient {
+impl Provider for NstnApiClient {
     type Stream = MessageStream;
 
     fn send_message<'a>(
@@ -652,7 +652,7 @@ mod tests {
 
     use super::{
         now_unix_timestamp, oauth_token_is_expired, resolve_saved_oauth_token,
-        resolve_startup_auth_source, AuthSource, ClawApiClient, OAuthTokenSet,
+        resolve_startup_auth_source, AuthSource, NstnApiClient, OAuthTokenSet,
     };
     use crate::types::{ContentBlockDelta, MessageRequest};
 
@@ -717,7 +717,7 @@ mod tests {
         let _guard = env_lock();
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         let error = super::read_api_key().expect_err("missing key should error");
         assert!(matches!(
             error,
@@ -787,7 +787,7 @@ mod tests {
     fn auth_source_from_saved_oauth_when_env_absent() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        std::env::set_var("NSTN_CONFIG_HOME", &config_home);
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
         save_oauth_credentials(&nstn_runtime::OAuthTokenSet {
@@ -802,7 +802,7 @@ mod tests {
         assert_eq!(auth.bearer_token(), Some("saved-access-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -826,7 +826,7 @@ mod tests {
     fn resolve_saved_oauth_token_refreshes_expired_credentials() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        std::env::set_var("NSTN_CONFIG_HOME", &config_home);
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
         save_oauth_credentials(&nstn_runtime::OAuthTokenSet {
@@ -850,7 +850,7 @@ mod tests {
         assert_eq!(stored.access_token, "refreshed-token");
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -858,7 +858,7 @@ mod tests {
     fn resolve_startup_auth_source_uses_saved_oauth_without_loading_config() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        std::env::set_var("NSTN_CONFIG_HOME", &config_home);
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
         save_oauth_credentials(&nstn_runtime::OAuthTokenSet {
@@ -874,7 +874,7 @@ mod tests {
         assert_eq!(auth.bearer_token(), Some("saved-access-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -882,7 +882,7 @@ mod tests {
     fn resolve_startup_auth_source_errors_when_refreshable_token_lacks_config() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        std::env::set_var("NSTN_CONFIG_HOME", &config_home);
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
         save_oauth_credentials(&nstn_runtime::OAuthTokenSet {
@@ -906,7 +906,7 @@ mod tests {
         assert_eq!(stored.refresh_token.as_deref(), Some("refresh-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -914,7 +914,7 @@ mod tests {
     fn resolve_saved_oauth_token_preserves_refresh_token_when_refresh_response_omits_it() {
         let _guard = env_lock();
         let config_home = temp_config_home();
-        std::env::set_var("CLAW_CONFIG_HOME", &config_home);
+        std::env::set_var("NSTN_CONFIG_HOME", &config_home);
         std::env::remove_var("ANTHROPIC_AUTH_TOKEN");
         std::env::remove_var("ANTHROPIC_API_KEY");
         save_oauth_credentials(&nstn_runtime::OAuthTokenSet {
@@ -939,7 +939,7 @@ mod tests {
         assert_eq!(stored.refresh_token.as_deref(), Some("refresh-token"));
 
         clear_oauth_credentials().expect("clear credentials");
-        std::env::remove_var("CLAW_CONFIG_HOME");
+        std::env::remove_var("NSTN_CONFIG_HOME");
         cleanup_temp_config_home(&config_home);
     }
 
@@ -960,7 +960,7 @@ mod tests {
 
     #[test]
     fn backoff_doubles_until_maximum() {
-        let client = ClawApiClient::new("test-key").with_retry_policy(
+        let client = NstnApiClient::new("test-key").with_retry_policy(
             3,
             Duration::from_millis(10),
             Duration::from_millis(25),

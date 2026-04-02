@@ -534,10 +534,10 @@ impl DefinitionSource {
     fn label(self) -> &'static str {
         match self {
             Self::ProjectCodex => "Project (.codex)",
-            Self::ProjectClaw => "Project (.claw)",
+            Self::ProjectClaw => "Project (.nanosistant)",
             Self::UserCodexHome => "User ($CODEX_HOME)",
             Self::UserCodex => "User (~/.codex)",
-            Self::UserClaw => "User (~/.claw)",
+            Self::UserClaw => "User (~/.nanosistant)",
         }
     }
 }
@@ -1212,7 +1212,7 @@ fn discover_definition_roots(cwd: &Path, subdir: &str) -> Vec<(DefinitionSource,
         push_unique_root(
             &mut roots,
             DefinitionSource::ProjectClaw,
-            ancestor.join(".claw").join(subdir),
+            ancestor.join(".nanosistant").join(subdir),
         );
     }
 
@@ -1235,7 +1235,7 @@ fn discover_definition_roots(cwd: &Path, subdir: &str) -> Vec<(DefinitionSource,
         push_unique_root(
             &mut roots,
             DefinitionSource::UserClaw,
-            home.join(".claw").join(subdir),
+            home.join(".nanosistant").join(subdir),
         );
     }
 
@@ -1255,7 +1255,7 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         push_unique_skill_root(
             &mut roots,
             DefinitionSource::ProjectClaw,
-            ancestor.join(".claw").join("skills"),
+            ancestor.join(".nanosistant").join("skills"),
             SkillOrigin::SkillsDir,
         );
         push_unique_skill_root(
@@ -1267,7 +1267,7 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         push_unique_skill_root(
             &mut roots,
             DefinitionSource::ProjectClaw,
-            ancestor.join(".claw").join("commands"),
+            ancestor.join(".nanosistant").join("commands"),
             SkillOrigin::LegacyCommandsDir,
         );
     }
@@ -1305,13 +1305,13 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         push_unique_skill_root(
             &mut roots,
             DefinitionSource::UserClaw,
-            home.join(".claw").join("skills"),
+            home.join(".nanosistant").join("skills"),
             SkillOrigin::SkillsDir,
         );
         push_unique_skill_root(
             &mut roots,
             DefinitionSource::UserClaw,
-            home.join(".claw").join("commands"),
+            home.join(".nanosistant").join("commands"),
             SkillOrigin::LegacyCommandsDir,
         );
     }
@@ -1647,7 +1647,7 @@ fn render_agents_usage(unexpected: Option<&str>) -> String {
         "Agents".to_string(),
         "  Usage            /agents".to_string(),
         "  Direct CLI       nanosistant agents".to_string(),
-        "  Sources          .codex/agents, .claw/agents, $CODEX_HOME/agents".to_string(),
+        "  Sources          .codex/agents, .nanosistant/agents, $CODEX_HOME/agents".to_string(),
     ];
     if let Some(args) = unexpected {
         lines.push(format!("  Unexpected       {args}"));
@@ -1660,7 +1660,7 @@ fn render_skills_usage(unexpected: Option<&str>) -> String {
         "Skills".to_string(),
         "  Usage            /skills".to_string(),
         "  Direct CLI       nanosistant skills".to_string(),
-        "  Sources          .codex/skills, .claw/skills, legacy /commands".to_string(),
+        "  Sources          .codex/skills, .nanosistant/skills, legacy /commands".to_string(),
     ];
     if let Some(args) = unexpected {
         lines.push(format!("  Unexpected       {args}"));

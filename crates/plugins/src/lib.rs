@@ -18,7 +18,7 @@ const BUNDLED_MARKETPLACE: &str = "bundled";
 const SETTINGS_FILE_NAME: &str = "settings.json";
 const REGISTRY_FILE_NAME: &str = "installed.json";
 const MANIFEST_FILE_NAME: &str = "plugin.json";
-const MANIFEST_RELATIVE_PATH: &str = ".claw-plugin/plugin.json";
+const MANIFEST_RELATIVE_PATH: &str = ".nstn-plugin/plugin.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -302,14 +302,14 @@ impl PluginTool {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .env("CLAW_PLUGIN_ID", &self.plugin_id)
-            .env("CLAW_PLUGIN_NAME", &self.plugin_name)
-            .env("CLAW_TOOL_NAME", &self.definition.name)
-            .env("CLAW_TOOL_INPUT", &input_json);
+            .env("NSTN_PLUGIN_ID", &self.plugin_id)
+            .env("NSTN_PLUGIN_NAME", &self.plugin_name)
+            .env("NSTN_TOOL_NAME", &self.definition.name)
+            .env("NSTN_TOOL_INPUT", &input_json);
         if let Some(root) = &self.root {
             process
                 .current_dir(root)
-                .env("CLAW_PLUGIN_ROOT", root.display().to_string());
+                .env("NSTN_PLUGIN_ROOT", root.display().to_string());
         }
 
         let mut child = process.spawn()?;
@@ -2122,7 +2122,7 @@ mod tests {
         let script_path = root.join("tools").join("echo-json.sh");
         write_file(
             &script_path,
-            "#!/bin/sh\nINPUT=$(cat)\nprintf '{\"plugin\":\"%s\",\"tool\":\"%s\",\"input\":%s}\\n' \"$CLAW_PLUGIN_ID\" \"$CLAW_TOOL_NAME\" \"$INPUT\"\n",
+            "#!/bin/sh\nINPUT=$(cat)\nprintf '{\"plugin\":\"%s\",\"tool\":\"%s\",\"input\":%s}\\n' \"$NSTN_PLUGIN_ID\" \"$NSTN_TOOL_NAME\" \"$INPUT\"\n",
         );
         #[cfg(unix)]
         {

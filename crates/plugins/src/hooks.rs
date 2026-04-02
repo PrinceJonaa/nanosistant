@@ -310,7 +310,7 @@ mod tests {
     }
 
     fn write_hook_plugin(root: &Path, name: &str, pre_message: &str, post_message: &str) {
-        fs::create_dir_all(root.join(".claw-plugin")).expect("manifest dir");
+        fs::create_dir_all(root.join(".nstn-plugin")).expect("manifest dir");
         fs::create_dir_all(root.join("hooks")).expect("hooks dir");
         fs::write(
             root.join("hooks").join("pre.sh"),
@@ -323,7 +323,7 @@ mod tests {
         )
         .expect("write post hook");
         fs::write(
-            root.join(".claw-plugin").join("plugin.json"),
+            root.join(".nstn-plugin").join("plugin.json"),
             format!(
                 "{{\n  \"name\": \"{name}\",\n  \"version\": \"1.0.0\",\n  \"description\": \"hook plugin\",\n  \"hooks\": {{\n    \"PreToolUse\": [\"./hooks/pre.sh\"],\n    \"PostToolUse\": [\"./hooks/post.sh\"]\n  }}\n}}"
             ),

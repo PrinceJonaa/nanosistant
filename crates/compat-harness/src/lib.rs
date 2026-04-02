@@ -65,16 +65,16 @@ fn resolve_upstream_repo_root(primary_repo_root: &Path) -> PathBuf {
 fn upstream_repo_candidates(primary_repo_root: &Path) -> Vec<PathBuf> {
     let mut candidates = vec![primary_repo_root.to_path_buf()];
 
-    if let Some(explicit) = std::env::var_os("CLAW_CODE_UPSTREAM") {
+    if let Some(explicit) = std::env::var_os("NSTN_UPSTREAM") {
         candidates.push(PathBuf::from(explicit));
     }
 
     for ancestor in primary_repo_root.ancestors().take(4) {
-        candidates.push(ancestor.join("claw-code"));
+        candidates.push(ancestor.join("nanosistant"));
     }
 
-    candidates.push(primary_repo_root.join("reference-source").join("claw-code"));
-    candidates.push(primary_repo_root.join("vendor").join("claw-code"));
+    candidates.push(primary_repo_root.join("reference-source").join("nanosistant"));
+    candidates.push(primary_repo_root.join("vendor").join("nanosistant"));
 
     let mut deduped = Vec::new();
     for candidate in candidates {

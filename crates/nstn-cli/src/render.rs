@@ -29,17 +29,17 @@ pub struct ColorTheme {
 impl Default for ColorTheme {
     fn default() -> Self {
         Self {
-            heading: Color::Cyan,
-            emphasis: Color::Magenta,
-            strong: Color::Yellow,
-            inline_code: Color::Green,
-            link: Color::Blue,
+            heading: Color::Rgb { r: 0, g: 200, b: 200 },
+            emphasis: Color::Rgb { r: 180, g: 120, b: 255 },
+            strong: Color::Rgb { r: 255, g: 200, b: 80 },
+            inline_code: Color::Rgb { r: 100, g: 220, b: 160 },
+            link: Color::Rgb { r: 80, g: 160, b: 255 },
             quote: Color::DarkGrey,
-            table_border: Color::DarkCyan,
-            code_block_border: Color::DarkGrey,
-            spinner_active: Color::Blue,
-            spinner_done: Color::Green,
-            spinner_failed: Color::Red,
+            table_border: Color::Rgb { r: 60, g: 140, b: 140 },
+            code_block_border: Color::Rgb { r: 80, g: 80, b: 120 },
+            spinner_active: Color::Rgb { r: 0, g: 200, b: 200 },
+            spinner_done: Color::Rgb { r: 80, g: 220, b: 120 },
+            spinner_failed: Color::Rgb { r: 255, g: 80, b: 80 },
         }
     }
 }
@@ -50,7 +50,10 @@ pub struct Spinner {
 }
 
 impl Spinner {
-    const FRAMES: [&'static str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    const FRAMES: [&'static str; 8] = [
+        "⟨·⟩", "⟨◦⟩", "⟨●⟩", "⟨◉⟩",
+        "⟨●⟩", "⟨◦⟩", "⟨·⟩", "⟨ ⟩",
+    ];
 
     #[must_use]
     pub fn new() -> Self {

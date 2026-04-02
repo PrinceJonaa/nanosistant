@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::json::JsonValue;
 use crate::mcp_config::McpConfig;
 
-pub const CLAW_SETTINGS_SCHEMA_NAME: &str = "SettingsSchema";
+pub const NSTN_SETTINGS_SCHEMA_NAME: &str = "SettingsSchema";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ConfigSource {
@@ -122,8 +122,8 @@ impl ConfigLoader {
     #[must_use]
     pub fn discover(&self) -> Vec<ConfigEntry> {
         let user_legacy_path = self.config_home.parent().map_or_else(
-            || PathBuf::from(".claw.json"),
-            |parent| parent.join(".claw.json"),
+            || PathBuf::from(".nanosistant.json"),
+            |parent| parent.join(".nanosistant.json"),
         );
         vec![
             ConfigEntry {
@@ -136,15 +136,15 @@ impl ConfigLoader {
             },
             ConfigEntry {
                 source: ConfigSource::Project,
-                path: self.cwd.join(".claw.json"),
+                path: self.cwd.join(".nanosistant.json"),
             },
             ConfigEntry {
                 source: ConfigSource::Project,
-                path: self.cwd.join(".claw").join("settings.json"),
+                path: self.cwd.join(".nanosistant").join("settings.json"),
             },
             ConfigEntry {
                 source: ConfigSource::Local,
-                path: self.cwd.join(".claw").join("settings.local.json"),
+                path: self.cwd.join(".nanosistant").join("settings.local.json"),
             },
         ]
     }
@@ -322,10 +322,10 @@ impl RuntimePluginConfig {
 
 #[must_use]
 pub fn default_config_home() -> PathBuf {
-    std::env::var_os("CLAW_CONFIG_HOME")
+    std::env::var_os("NSTN_CONFIG_HOME")
         .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".claw")))
-        .unwrap_or_else(|| PathBuf::from(".claw"))
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".nanosistant")))
+        .unwrap_or_else(|| PathBuf::from(".nanosistant"))
 }
 
 impl RuntimeHookConfig {
@@ -363,7 +363,7 @@ impl RuntimeHookConfig {
 fn read_optional_json_object(
     path: &Path,
 ) -> Result<Option<BTreeMap<String, JsonValue>>, ConfigError> {
-    let is_legacy_config = path.file_name().and_then(|name| name.to_str()) == Some(".claw.json");
+    let is_legacy_config = path.file_name().and_then(|name| name.to_str()) == Some(".nanosistant.json");
     let contents = match fs::read_to_string(path) {
         Ok(contents) => contents,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
@@ -603,7 +603,7 @@ mod tests {
     fn rejects_non_object_settings_files() {
         let root = temp_dir();
         let cwd = root.join("project");
-        let home = root.join("home").join(".claw");
+        let home = root.join("home").join(".nanosistant");
         fs::create_dir_all(&home).expect("home config dir");
         fs::create_dir_all(&cwd).expect("project dir");
         fs::write(home.join("settings.json"), "[]").expect("write bad settings");
@@ -622,7 +622,7 @@ mod tests {
     fn loads_hooks_from_settings() {
         let root = temp_dir();
         let cwd = root.join("project");
-        let home = root.join("home").join(".claw");
+        let home = root.join("home").join(".nanosistant");
         fs::create_dir_all(&home).expect("home config dir");
         fs::create_dir_all(&cwd).expect("project dir");
         fs::write(
@@ -650,7 +650,7 @@ mod tests {
     fn loads_permission_mode_from_settings() {
         let root = temp_dir();
         let cwd = root.join("project");
-        let home = root.join("home").join(".claw");
+        let home = root.join("home").join(".nanosistant");
         fs::create_dir_all(&home).expect("home config dir");
         fs::create_dir_all(&cwd).expect("project dir");
         fs::write(

@@ -16,7 +16,7 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use nstn_api::{
-    resolve_startup_auth_source, ClawApiClient, AuthSource, ContentBlockDelta, InputContentBlock,
+    resolve_startup_auth_source, NstnApiClient, AuthSource, ContentBlockDelta, InputContentBlock,
     InputMessage, MessageRequest, MessageResponse, OutputContentBlock,
     StreamEvent as ApiStreamEvent, ToolChoice, ToolDefinition, ToolResultContentBlock,
     max_tokens_for_model, resolve_model_alias, read_base_url,
@@ -359,8 +359,8 @@ fn permission_mode_from_label(mode: &str) -> PermissionMode {
 }
 
 fn default_permission_mode() -> PermissionMode {
-    env::var("NANOSISTANT_PERMISSION_MODE")
-        .or_else(|_| env::var("CLAW_PERMISSION_MODE"))
+    env::var("NSTN_PERMISSION_MODE")
+        .or_else(|_| env::var("NANOSISTANT_PERMISSION_MODE"))
         .ok()
         .as_deref()
         .and_then(normalize_permission_mode)
@@ -425,7 +425,7 @@ fn dump_manifests() {
 }
 
 fn print_bootstrap_plan() {
-    for phase in BootstrapPlan::claw_default().phases() {
+    for phase in BootstrapPlan::nstn_default().phases() {
         println!("- {phase:?}");
     }
 }
@@ -433,14 +433,15 @@ fn print_bootstrap_plan() {
 fn default_oauth_config() -> OAuthConfig {
     OAuthConfig {
         client_id: String::from("9d1c250a-e61b-44d9-88ed-5944d1962f5e"),
-        authorize_url: String::from("https://platform.claw.dev/oauth/authorize"),
-        token_url: String::from("https://platform.claw.dev/v1/oauth/token"),
+        // TODO: replace with Nanosistant OAuth endpoint when available
+        authorize_url: String::from("https://platform.nanosistant.dev/oauth/authorize"),
+        token_url: String::from("https://platform.nanosistant.dev/v1/oauth/token"),
         callback_port: None,
         manual_redirect_url: None,
         scopes: vec![
             String::from("user:profile"),
             String::from("user:inference"),
-            String::from("user:sessions:claw_code"),
+            String::from("user:sessions:nanosistant"),
         ],
     }
 }
@@ -483,7 +484,7 @@ fn run_login() -> Result<(), Box<dyn std::error::Error>> {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "oauth state mismatch").into());
     }
 
-    let client = ClawApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
+    let client = NstnApiClient::from_auth(AuthSource::None).with_base_url(read_base_url());
     let exchange_request =
         OAuthTokenExchangeRequest::from_config(oauth, code, state, pkce.verifier, redirect_uri);
     let runtime = tokio::runtime::Runtime::new()?;
@@ -936,7 +937,7 @@ fn run_repl(
     permission_mode: PermissionMode,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut cli = LiveCli::new(model, true, allowed_tools, permission_mode)?;
-    let mut editor = input::LineEditor::new("> ", slash_command_completion_candidates());
+    let mut editor = input::LineEditor::new("▸ ", slash_command_completion_candidates());
     println!("{}", cli.startup_banner());
 
     loop {
@@ -1030,22 +1031,18 @@ impl LiveCli {
             |path| path.display().to_string(),
         );
         format!(
-            "\x1b[38;5;33m\
- ███╗   ██╗ █████╗ ███╗   ██╗ ██████╗ \n\
- ████╗  ██║██╔══██╗████╗  ██║██╔═══██╗\n\
- ██╔██╗ ██║███████║██╔██╗ ██║██║   ██║\n\
- ██║╚██╗██║██╔══██║██║╚██╗██║██║   ██║\n\
- ██║ ╚████║██║  ██║██║ ╚████║╚██████╔╝\n\
- ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ \x1b[0m \x1b[38;5;208mNanosistant\x1b[0m\n\n\
-  \x1b[2mModel\x1b[0m            {}\n\
-  \x1b[2mPermissions\x1b[0m      {}\n\
-  \x1b[2mDirectory\x1b[0m        {}\n\
-  \x1b[2mSession\x1b[0m          {}\n\n\
-  Type \x1b[1m/help\x1b[0m for commands · \x1b[2mShift+Enter\x1b[0m for newline",
-            self.model,
-            self.permission_mode.as_str(),
-            cwd,
-            self.session.id,
+            "\x1b[38;5;51mNanosistant\x1b[0m v{version}\n\
+\x1b[38;5;245mSovereignty-first personal AI\x1b[0m · \x1b[38;5;208mNanoClaw → RuFlo → RuVector\x1b[0m\n\
+Type \x1b[1m/help\x1b[0m for commands\n\n\
+  \x1b[2mModel\x1b[0m            {model}\n\
+  \x1b[2mPermissions\x1b[0m      {permissions}\n\
+  \x1b[2mDirectory\x1b[0m        {cwd}\n\
+  \x1b[2mSession\x1b[0m          {session_id}",
+            version = VERSION,
+            model = self.model,
+            permissions = self.permission_mode.as_str(),
+            cwd = cwd,
+            session_id = self.session.id,
         )
     }
 
@@ -1739,7 +1736,7 @@ impl LiveCli {
 
 fn sessions_dir() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let cwd = env::current_dir()?;
-    let path = cwd.join(".claw").join("sessions");
+    let path = cwd.join(".nanosistant").join("sessions");
     fs::create_dir_all(&path)?;
     Ok(path)
 }
@@ -2846,7 +2843,7 @@ impl nstn_runtime::PermissionPrompter for CliPermissionPrompter {
 
 struct DefaultRuntimeClient {
     runtime: tokio::runtime::Runtime,
-    client: ClawApiClient,
+    client: NstnApiClient,
     model: String,
     enable_tools: bool,
     emit_output: bool,
@@ -2866,7 +2863,7 @@ impl DefaultRuntimeClient {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(Self {
             runtime: tokio::runtime::Runtime::new()?,
-            client: ClawApiClient::from_auth(resolve_cli_auth_source()?).with_base_url(read_base_url()),
+            client: NstnApiClient::from_auth(resolve_cli_auth_source()?).with_base_url(read_base_url()),
             model,
             enable_tools,
             emit_output,
@@ -4547,7 +4544,7 @@ mod tests {
             task_label: "ship plugin progress".to_string(),
             step: 3,
             phase: "running read_file".to_string(),
-            detail: Some("reading rust/crates/claw-cli/src/main.rs".to_string()),
+            detail: Some("reading rust/crates/nstn-cli/src/main.rs".to_string()),
             saw_final_text: false,
         };
 

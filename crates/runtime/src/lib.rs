@@ -25,7 +25,7 @@ pub use compact::{
 pub use config::{
     ConfigEntry, ConfigError, ConfigLoader, ConfigSource, OAuthConfig, ResolvedPermissionMode,
     RuntimeConfig, RuntimeFeatureConfig, RuntimeHookConfig, RuntimePluginConfig,
-    CLAW_SETTINGS_SCHEMA_NAME,
+    NSTN_SETTINGS_SCHEMA_NAME,
 };
 pub use mcp_config::{
     McpConfig, McpManagedProxyConfig, McpOAuthConfig, McpRemoteServerConfig, McpSdkServerConfig,
