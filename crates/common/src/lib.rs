@@ -1,4 +1,16 @@
+// Legacy unified module (kept for backward compat)
 pub mod deterministic;
+
+// Domain deterministic modules
+pub mod det_music;
+pub mod det_finance;
+pub mod det_data;
+pub mod det_time;
+pub mod det_text;
+pub mod det_code;
+pub mod det_geo;
+pub mod function_proposal;
+
 pub mod domain;
 pub mod events;
 pub mod handoff;
