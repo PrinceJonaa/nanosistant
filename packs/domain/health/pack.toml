@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-health"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Health and fitness calculations: BMI, BMR, target heart rate, VO2 max, calorie estimation, and body fat percentage."
+nstn_version = ">=0.6.0"
+domain = "health"
+tier = "Domain"
+tags = ["health", "fitness", "bmi", "bmr", "heart-rate", "vo2max", "calories", "body-fat", "tdee", "macros"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/health"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 20
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "bmi", "bmr", "heart rate", "calories", "body fat",
+  "vo2 max", "tdee", "macros", "protein", "carbs",
+  "weight", "height", "fitness", "exercise", "health",
+  "metabolic rate", "mhr", "target heart rate"
+]
+semantic_description = "Health and fitness metrics: BMI, basal metabolic rate, target heart rate, VO2 max, calorie needs, macronutrients"
+confidence_threshold = 0.70

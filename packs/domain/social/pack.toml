@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-social"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Social network analysis: centrality measures, community detection metrics, influence scores, and engagement rate calculations."
+nstn_version = ">=0.6.0"
+domain = "social"
+tier = "Domain"
+tags = ["social", "network", "centrality", "influence", "engagement", "reach", "virality", "community", "graph-metrics"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/social"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 16
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "engagement", "reach", "impressions", "followers", "following",
+  "likes", "shares", "retweets", "viral", "influence",
+  "centrality", "betweenness", "pagerank", "community",
+  "social network", "influencer", "klout"
+]
+semantic_description = "Social network analysis: engagement rates, influence scoring, centrality measures, and community detection metrics"
+confidence_threshold = 0.70

@@ -1,0 +1,23 @@
+[pack]
+name = "nstn-graph"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal graph algorithms: shortest path, cycle detection, topological sort, connectivity, spanning trees."
+nstn_version = ">=0.6.0"
+domain = "universal"
+tier = "Universal"
+tags = ["graph", "dag", "path", "cycle", "topology", "tree", "connectivity", "algorithm"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/graph"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 14
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "graph", "node", "edge", "path", "shortest", "cycle",
+  "topological", "sort", "tree", "spanning", "connected",
+  "bfs", "dfs", "vertex", "adjacency"
+]
+semantic_description = "Graph theory algorithms including shortest path, cycle detection, topological sort, and spanning trees"
+confidence_threshold = 0.70

@@ -1,0 +1,23 @@
+[pack]
+name = "nstn-information"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal information theory: entropy, mutual information, KL divergence, channel capacity, compression bounds."
+nstn_version = ">=0.6.0"
+domain = "universal"
+tier = "Universal"
+tags = ["information", "entropy", "kl-divergence", "mutual-information", "compression", "bits"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/information"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 10
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "entropy", "information", "bits", "nats", "shannon",
+  "kl divergence", "mutual information", "channel capacity",
+  "huffman", "compression", "kolmogorov"
+]
+semantic_description = "Information theory calculations: Shannon entropy, KL divergence, mutual information, and channel capacity"
+confidence_threshold = 0.72

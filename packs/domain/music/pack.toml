@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-music"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Music theory and production: BPM calculations, bar duration, note frequencies, scales, chords, and intervals."
+nstn_version = ">=0.6.0"
+domain = "music"
+tier = "Domain"
+tags = ["music", "bpm", "tempo", "scale", "chord", "note", "frequency", "interval", "harmony", "rhythm"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/music"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 28
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "bpm", "tempo", "bar", "beat", "measure", "note", "chord",
+  "scale", "key", "major", "minor", "interval", "hz", "frequency",
+  "octave", "pitch", "melody", "harmony", "rhythm", "time signature",
+  "beat duration", "bar duration"
+]
+semantic_description = "Music theory calculations: BPM to duration, note frequencies, scales, chord construction, and rhythm analysis"
+confidence_threshold = 0.72

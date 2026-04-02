@@ -1,0 +1,23 @@
+[pack]
+name = "nstn-logic"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal logic operations: boolean algebra, set operations, propositional calculus, and inference rules."
+nstn_version = ">=0.6.0"
+domain = "universal"
+tier = "Universal"
+tags = ["logic", "boolean", "set", "inference", "propositional", "algebra"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/logic"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 18
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "and", "or", "not", "xor", "nand", "nor", "implies",
+  "boolean", "logic", "true", "false", "proposition",
+  "union", "intersection", "complement", "subset", "superset"
+]
+semantic_description = "Boolean logic, propositional calculus, set theory operations, and logical inference"
+confidence_threshold = 0.70

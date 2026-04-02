@@ -325,6 +325,59 @@ fn infer_module_from_query(q: &str) -> FunctionModule {
 }
 
 // ═══════════════════════════════════════
+// OperatorRuleProposal
+// ═══════════════════════════════════════
+
+/// A proposal for a TOML operator rule (lower friction than a full Rust function).
+///
+/// Proposed by the Dreamer when it detects repeatable patterns that can be
+/// expressed as a deterministic rule rather than compiled Rust.  Operators
+/// review, optionally edit, and flip `approved = true` in the generated
+/// `rules.toml` to activate the rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperatorRuleProposal {
+    /// Unique proposal identifier, e.g. `"orp-3f2a"".
+    pub id: String,
+    /// The rule `id` field this will produce in `rules.toml`.
+    pub rule_id: String,
+    /// Human-readable description of the proposed rule.
+    pub description: String,
+    /// Keywords that should trigger this rule (Option A routing).
+    pub trigger_keywords: Vec<String>,
+    /// Semantic description for embedding-based routing (Option C).
+    pub semantic_hint: Option<String>,
+    /// The proposed formula type.
+    pub formula: ProposedFormula,
+    /// Estimated confidence (0.0–1.0).
+    pub confidence: f64,
+    /// IDs of the episodic traces that motivated this proposal.
+    pub supporting_episodes: Vec<String>,
+    /// Example input queries the rule should handle.
+    pub example_inputs: Vec<String>,
+    /// Expected outputs for the corresponding example inputs.
+    pub example_outputs: Vec<String>,
+    /// When this proposal was generated.
+    pub proposed_at: DateTime<Utc>,
+    /// Lifecycle status — starts as Pending, operator sets to Approved.
+    pub status: ProposalStatus,
+}
+
+/// The proposed formula type — what kind of deterministic rule this should be.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ProposedFormula {
+    /// Always return a fixed string.
+    Static { response: String },
+    /// Arithmetic expression with variable substitution.
+    Arithmetic { expr: String, variables: Vec<String> },
+    /// Lookup table as (key, value) pairs (order-preserving).
+    Lookup { pairs: Vec<(String, String)> },
+    /// Weighted keyword scoring.
+    WeightedScore { keyword_weights: Vec<(String, f64)> },
+    /// String template with named slots.
+    Template { template: String, slots: Vec<String> },
+}
+
+// ═══════════════════════════════════════
 // CodingTask generation
 // ═══════════════════════════════════════
 
@@ -493,5 +546,57 @@ mod tests {
     fn infer_module_from_bpm() {
         let m = super::infer_module_from_query("what is the bpm of this track");
         assert_eq!(m, FunctionModule::Music);
+    }
+
+    #[test]
+    fn operator_rule_proposal_roundtrips_json() {
+        let proposal = OperatorRuleProposal {
+            id: "orp-001".to_string(),
+            rule_id: "bpm-bar-duration".to_string(),
+            description: "Calculate bar duration from BPM".to_string(),
+            trigger_keywords: vec!["bpm".to_string(), "bar".to_string()],
+            semantic_hint: Some("bar duration from tempo".to_string()),
+            formula: ProposedFormula::Arithmetic {
+                expr: "60 / x * 4".to_string(),
+                variables: vec!["x".to_string()],
+            },
+            confidence: 0.92,
+            supporting_episodes: vec!["ep-001".to_string()],
+            example_inputs: vec!["what is a bar at 120 bpm".to_string()],
+            example_outputs: vec!["2.000 seconds".to_string()],
+            proposed_at: Utc::now(),
+            status: ProposalStatus::Pending,
+        };
+        let json = serde_json::to_string(&proposal).unwrap();
+        let back: OperatorRuleProposal = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.id, "orp-001");
+        assert_eq!(back.confidence, 0.92);
+    }
+
+    #[test]
+    fn proposed_formula_static_roundtrips() {
+        let formula = ProposedFormula::Static { response: "hello".to_string() };
+        let json = serde_json::to_string(&formula).unwrap();
+        let back: ProposedFormula = serde_json::from_str(&json).unwrap();
+        match back {
+            ProposedFormula::Static { response } => assert_eq!(response, "hello"),
+            _ => panic!("expected Static"),
+        }
+    }
+
+    #[test]
+    fn proposed_formula_lookup_roundtrips() {
+        let formula = ProposedFormula::Lookup {
+            pairs: vec![
+                ("C major".to_string(), "C D E F G A B".to_string()),
+                ("A minor".to_string(), "A B C D E F G".to_string()),
+            ],
+        };
+        let json = serde_json::to_string(&formula).unwrap();
+        let back: ProposedFormula = serde_json::from_str(&json).unwrap();
+        match back {
+            ProposedFormula::Lookup { pairs } => assert_eq!(pairs.len(), 2),
+            _ => panic!("expected Lookup"),
+        }
     }
 }

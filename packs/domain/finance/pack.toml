@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-finance"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Financial calculations: options pricing, Sharpe ratio, compound interest, annuity, volatility, and risk metrics."
+nstn_version = ">=0.6.0"
+domain = "finance"
+tier = "Domain"
+tags = ["finance", "options", "sharpe", "interest", "volatility", "risk", "portfolio", "black-scholes", "annuity"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/finance"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 35
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "stock", "option", "call", "put", "delta", "gamma", "theta",
+  "vega", "black-scholes", "sharpe", "volatility", "return",
+  "portfolio", "interest", "compound", "annuity", "dividend",
+  "yield", "bond", "price", "pnl", "drawdown", "beta", "alpha"
+]
+semantic_description = "Financial calculations: options greeks, Sharpe ratio, compound interest, annuity payments, portfolio risk metrics"
+confidence_threshold = 0.72

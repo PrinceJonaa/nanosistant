@@ -3,10 +3,21 @@
 //! Reads a `DreamingReport`. Inserts lesson cards into L2, queues L3 patches,
 //! records routing weight hints, and surfaces reports to Jona.
 //!
+//! ## Operator rule proposal handling
+//!
+//! When the report contains `operator_rule_proposals`, the Applier:
+//! - Writes **approved** proposals to `.nanosistant/operator/functions.toml`
+//!   (appending TOML rule blocks ready for the operator to activate).
+//! - Queues **unapproved/pending** proposals in
+//!   `.nanosistant/operator/pending_proposals.json` for operator review.
+//!
 //! NEVER calls an LLM. NEVER interprets prose. Only reads typed fields.
+
+use std::path::Path;
 
 use crate::dreamer::{DreamingReport, SystemMode};
 use crate::memory::{LessonCard, MemorySystem};
+use nstn_common::function_proposal::{OperatorRuleProposal, ProposalStatus};
 
 // ═══════════════════════════════════════
 // Apply Result
@@ -20,6 +31,10 @@ pub struct ApplyResult {
     pub l3_patches_queued: usize,
     pub weight_hints_recorded: usize,
     pub dispatch_tasks: usize,
+    /// Number of approved operator rule proposals written to `functions.toml`.
+    pub operator_rules_written: usize,
+    /// Number of pending operator rule proposals queued in `pending_proposals.json`.
+    pub operator_rules_pending: usize,
     pub errors: Vec<String>,
 }
 
@@ -35,6 +50,18 @@ impl DreamerApplier {
     /// This function is deterministic — it never calls an LLM. It maps typed
     /// fields from the report directly onto the memory tiers.
     pub fn apply(report: &DreamingReport, memory: &mut MemorySystem) -> ApplyResult {
+        Self::apply_with_operator_dir(report, memory, None)
+    }
+
+    /// Apply with an explicit operator directory for rule proposal persistence.
+    ///
+    /// `operator_dir` is the path to `.nanosistant/operator/` (or equivalent).
+    /// When `None`, operator rule proposals are counted but not persisted.
+    pub fn apply_with_operator_dir(
+        report: &DreamingReport,
+        memory: &mut MemorySystem,
+        operator_dir: Option<&Path>,
+    ) -> ApplyResult {
         let mut result = ApplyResult::default();
 
         // 1. Insert lesson cards into L2
@@ -61,8 +88,170 @@ impl DreamerApplier {
         //    (Orchestrator handles these, not DreamerApplier)
         result.dispatch_tasks = report.orchestrator_dispatch.len();
 
+        // 5. Handle operator rule proposals
+        if !report.operator_rule_proposals.is_empty() {
+            let (written, pending, errors) =
+                apply_operator_rule_proposals(&report.operator_rule_proposals, operator_dir);
+            result.operator_rules_written = written;
+            result.operator_rules_pending = pending;
+            result.errors.extend(errors);
+        }
+
         result
     }
+}
+
+// ═══════════════════════════════════════
+// Operator rule proposal persistence
+// ═══════════════════════════════════════
+
+/// Process operator rule proposals: write approved ones to `functions.toml`,
+/// queue pending ones in `pending_proposals.json`.
+///
+/// Returns `(written, pending, errors)`.
+fn apply_operator_rule_proposals(
+    proposals: &[OperatorRuleProposal],
+    operator_dir: Option<&Path>,
+) -> (usize, usize, Vec<String>) {
+    let mut written = 0usize;
+    let mut pending_list: Vec<&OperatorRuleProposal> = Vec::new();
+    let mut errors: Vec<String> = Vec::new();
+
+    let approved: Vec<&OperatorRuleProposal> = proposals
+        .iter()
+        .filter(|p| p.status == ProposalStatus::Approved)
+        .collect();
+
+    let pending: Vec<&OperatorRuleProposal> = proposals
+        .iter()
+        .filter(|p| p.status == ProposalStatus::Pending)
+        .collect();
+
+    pending_list.extend(&pending);
+
+    if let Some(dir) = operator_dir {
+        // Write approved proposals to functions.toml (append TOML rule blocks)
+        if !approved.is_empty() {
+            let functions_path = dir.join("functions.toml");
+            match write_approved_rules(&functions_path, &approved) {
+                Ok(n) => written = n,
+                Err(e) => errors.push(format!("functions.toml write error: {e}")),
+            }
+        }
+
+        // Queue pending proposals to pending_proposals.json
+        if !pending_list.is_empty() {
+            let pending_path = dir.join("pending_proposals.json");
+            match write_pending_proposals(&pending_path, &pending_list) {
+                Ok(_) => {}
+                Err(e) => errors.push(format!("pending_proposals.json write error: {e}")),
+            }
+        }
+    } else {
+        // No directory provided — just count
+        written = approved.len();
+    }
+
+    (written, pending_list.len(), errors)
+}
+
+/// Render approved proposals as TOML rule blocks and append to `functions.toml`.
+fn write_approved_rules(
+    path: &Path,
+    proposals: &[&OperatorRuleProposal],
+) -> Result<usize, String> {
+    use std::fmt::Write as FmtWrite;
+
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+
+    let mut toml_block = String::new();
+    for p in proposals {
+        // Render a minimal [[rules]] TOML block
+        let keywords_toml = p
+            .trigger_keywords
+            .iter()
+            .map(|k| format!("\"{k}\""))
+            .collect::<Vec<_>>()
+            .join(", ");
+        writeln!(toml_block, "\n[[rules]]").map_err(|e| e.to_string())?;
+        writeln!(toml_block, "id = \"{}\"", p.rule_id).map_err(|e| e.to_string())?;
+        writeln!(toml_block, "description = \"{}\"", p.description).map_err(|e| e.to_string())?;
+        writeln!(toml_block, "trigger_keywords = [{keywords_toml}]").map_err(|e| e.to_string())?;
+        writeln!(toml_block, "confidence = {:.2}", p.confidence).map_err(|e| e.to_string())?;
+        writeln!(toml_block, "proposed_by = \"dreamer\"").map_err(|e| e.to_string())?;
+        writeln!(toml_block, "approved = false  # operator must flip to true").map_err(|e| e.to_string())?;
+        writeln!(toml_block, "examples = []").map_err(|e| e.to_string())?;
+        // Render formula
+        match &p.formula {
+            nstn_common::function_proposal::ProposedFormula::Static { response } => {
+                writeln!(toml_block, "\n[rules.formula]").map_err(|e| e.to_string())?;
+                writeln!(toml_block, "Static = {{ response = \"{response}\" }}").map_err(|e| e.to_string())?;
+            }
+            nstn_common::function_proposal::ProposedFormula::Arithmetic { expr, variables } => {
+                let vars_toml = variables
+                    .iter()
+                    .map(|v| format!("\"{v}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                writeln!(toml_block, "\n[rules.formula]").map_err(|e| e.to_string())?;
+                writeln!(toml_block, "Arithmetic = {{ expr = \"{expr}\", variables = [{vars_toml}] }}").map_err(|e| e.to_string())?;
+            }
+            nstn_common::function_proposal::ProposedFormula::Template { template, slots } => {
+                let slots_toml = slots
+                    .iter()
+                    .map(|s| format!("\"{s}\""))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                writeln!(toml_block, "\n[rules.formula]").map_err(|e| e.to_string())?;
+                writeln!(toml_block, "Template = {{ template = \"{template}\", slots = [{slots_toml}] }}").map_err(|e| e.to_string())?;
+            }
+            _ => {
+                writeln!(toml_block, "# formula: see pending_proposals.json for full spec").map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
+    // Append to existing file or create new
+    use std::io::Write;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(|e| e.to_string())?;
+    file.write_all(toml_block.as_bytes()).map_err(|e| e.to_string())?;
+
+    Ok(proposals.len())
+}
+
+/// Serialise pending proposals to JSON for operator review.
+fn write_pending_proposals(
+    path: &Path,
+    proposals: &[&OperatorRuleProposal],
+) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+
+    // Load existing pending proposals if any, then merge
+    let mut existing: Vec<OperatorRuleProposal> = if path.exists() {
+        let json = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    for p in proposals {
+        // Deduplicate by id
+        if !existing.iter().any(|e| e.id == p.id) {
+            existing.push((*p).clone());
+        }
+    }
+
+    let json = serde_json::to_string_pretty(&existing).map_err(|e| e.to_string())?;
+    std::fs::write(path, json).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 // ═══════════════════════════════════════
@@ -157,6 +346,7 @@ mod tests {
             dreamer_confidence: ClassificationConfidence::High,
             suggested_next_batch_focus: "web search failures".to_string(),
             read_only_suppressions: vec![],
+            operator_rule_proposals: vec![],
         }
     }
 
@@ -354,5 +544,139 @@ mod tests {
         assert_eq!(result.l3_patches_queued, 1);
         assert_eq!(result.weight_hints_recorded, 1);
         assert!(result.errors.is_empty());
+    }
+
+    // ── operator rule proposals ───────────────────────────────────────────
+
+    use chrono::Utc;
+    use nstn_common::function_proposal::{OperatorRuleProposal, ProposalStatus, ProposedFormula};
+
+    fn make_operator_proposal(id: &str, status: ProposalStatus) -> OperatorRuleProposal {
+        OperatorRuleProposal {
+            id: id.to_string(),
+            rule_id: format!("rule-{id}"),
+            description: format!("Test rule {id}"),
+            trigger_keywords: vec!["bpm".to_string()],
+            semantic_hint: None,
+            formula: ProposedFormula::Static {
+                response: format!("response-{id}"),
+            },
+            confidence: 0.85,
+            supporting_episodes: vec!["ep-1".to_string()],
+            example_inputs: vec!["test query".to_string()],
+            example_outputs: vec![format!("response-{id}")],
+            proposed_at: Utc::now(),
+            status,
+        }
+    }
+
+    #[test]
+    fn pending_proposals_are_counted() {
+        let (_dir, mut ms) = temp_memory();
+        let mut report = minimal_report(SystemMode::Active);
+        report.operator_rule_proposals = vec![
+            make_operator_proposal("p1", ProposalStatus::Pending),
+            make_operator_proposal("p2", ProposalStatus::Pending),
+        ];
+
+        let result = DreamerApplier::apply(&report, &mut ms);
+
+        assert_eq!(result.operator_rules_pending, 2);
+        assert_eq!(result.operator_rules_written, 0);
+        assert!(result.errors.is_empty());
+    }
+
+    #[test]
+    fn approved_proposals_are_counted_without_dir() {
+        let (_dir, mut ms) = temp_memory();
+        let mut report = minimal_report(SystemMode::Active);
+        report.operator_rule_proposals = vec![
+            make_operator_proposal("a1", ProposalStatus::Approved),
+        ];
+
+        // No operator_dir provided — approved rules are counted, not persisted
+        let result = DreamerApplier::apply(&report, &mut ms);
+
+        assert_eq!(result.operator_rules_written, 1);
+        assert!(result.errors.is_empty());
+    }
+
+    #[test]
+    fn approved_proposals_written_to_functions_toml() {
+        let tmp = TempDir::new().unwrap();
+        let operator_dir = tmp.path().join("operator");
+        let (_ms_dir, mut ms) = temp_memory();
+        let mut report = minimal_report(SystemMode::Active);
+        report.operator_rule_proposals = vec![
+            make_operator_proposal("a2", ProposalStatus::Approved),
+        ];
+
+        let result = DreamerApplier::apply_with_operator_dir(
+            &report, &mut ms, Some(&operator_dir),
+        );
+
+        assert_eq!(result.operator_rules_written, 1);
+        assert!(result.errors.is_empty());
+
+        let functions_path = operator_dir.join("functions.toml");
+        assert!(functions_path.exists());
+        let content = std::fs::read_to_string(&functions_path).unwrap();
+        assert!(content.contains("[[rules]]"));
+        assert!(content.contains("rule-a2"));
+    }
+
+    #[test]
+    fn pending_proposals_written_to_json() {
+        let tmp = TempDir::new().unwrap();
+        let operator_dir = tmp.path().join("operator");
+        let (_ms_dir, mut ms) = temp_memory();
+        let mut report = minimal_report(SystemMode::Active);
+        report.operator_rule_proposals = vec![
+            make_operator_proposal("p3", ProposalStatus::Pending),
+        ];
+
+        let result = DreamerApplier::apply_with_operator_dir(
+            &report, &mut ms, Some(&operator_dir),
+        );
+
+        assert_eq!(result.operator_rules_pending, 1);
+        assert!(result.errors.is_empty());
+
+        let pending_path = operator_dir.join("pending_proposals.json");
+        assert!(pending_path.exists());
+        let json = std::fs::read_to_string(&pending_path).unwrap();
+        assert!(json.contains("p3"));
+    }
+
+    #[test]
+    fn mixed_proposals_split_correctly() {
+        let tmp = TempDir::new().unwrap();
+        let operator_dir = tmp.path().join("operator");
+        let (_ms_dir, mut ms) = temp_memory();
+        let mut report = minimal_report(SystemMode::Active);
+        report.operator_rule_proposals = vec![
+            make_operator_proposal("ap1", ProposalStatus::Approved),
+            make_operator_proposal("ap2", ProposalStatus::Approved),
+            make_operator_proposal("pn1", ProposalStatus::Pending),
+        ];
+
+        let result = DreamerApplier::apply_with_operator_dir(
+            &report, &mut ms, Some(&operator_dir),
+        );
+
+        assert_eq!(result.operator_rules_written, 2);
+        assert_eq!(result.operator_rules_pending, 1);
+        assert!(result.errors.is_empty());
+    }
+
+    #[test]
+    fn no_operator_proposals_produces_zero_counts() {
+        let (_dir, mut ms) = temp_memory();
+        let report = minimal_report(SystemMode::Active);
+
+        let result = DreamerApplier::apply(&report, &mut ms);
+
+        assert_eq!(result.operator_rules_written, 0);
+        assert_eq!(result.operator_rules_pending, 0);
     }
 }

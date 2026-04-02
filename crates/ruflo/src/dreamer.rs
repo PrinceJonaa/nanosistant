@@ -13,6 +13,10 @@ use crate::memory::{L1Event, LessonInstruction, L3PatchProposal};
 // construct a memory::LessonCard from a DreamerLessonCard.
 pub use crate::memory::LessonCard;
 
+// Re-export OperatorRuleProposal from nstn-common so callers don't need
+// to depend on nstn-common directly.
+pub use nstn_common::function_proposal::OperatorRuleProposal;
+
 // ═══════════════════════════════════════
 // Dreamer Input
 // ═══════════════════════════════════════
@@ -195,6 +199,14 @@ pub struct DreamingReport {
     pub dreamer_confidence: ClassificationConfidence,
     pub suggested_next_batch_focus: String,
     pub read_only_suppressions: Vec<String>,
+    /// Operator rule proposals generated when the Dreamer detects repeatable
+    /// patterns that are better expressed as TOML rules than compiled Rust.
+    ///
+    /// These are generated even in `ReadOnly` mode because they require only
+    /// operator review, not agent dispatch.  They are queued as `Pending` until
+    /// an operator flips `approved = true` in the generated `rules.toml`.
+    #[serde(default)]
+    pub operator_rule_proposals: Vec<OperatorRuleProposal>,
 }
 
 // ═══════════════════════════════════════
@@ -337,6 +349,7 @@ mod tests {
             dreamer_confidence: ClassificationConfidence::High,
             suggested_next_batch_focus: "code_edit failures".to_string(),
             read_only_suppressions: vec![],
+            operator_rule_proposals: vec![],
         }
     }
 
@@ -570,5 +583,96 @@ mod tests {
         let mut lc = lesson_card_with_episodes("x", vec!["ep".to_string()]);
         lc.confidence = ClassificationConfidence::Unclassified;
         assert_eq!(lc.confidence_f64(), 0.1);
+    }
+
+    // ── operator_rule_proposals ───────────────────────────────────────────
+
+    use chrono::Utc;
+    use nstn_common::function_proposal::{OperatorRuleProposal, ProposalStatus, ProposedFormula};
+
+    fn sample_operator_proposal(id: &str) -> OperatorRuleProposal {
+        OperatorRuleProposal {
+            id: id.to_string(),
+            rule_id: "bpm-bar".to_string(),
+            description: "BPM bar duration rule".to_string(),
+            trigger_keywords: vec!["bpm".to_string(), "bar".to_string()],
+            semantic_hint: None,
+            formula: ProposedFormula::Arithmetic {
+                expr: "60 / x * 4".to_string(),
+                variables: vec!["x".to_string()],
+            },
+            confidence: 0.92,
+            supporting_episodes: vec!["ep-1".to_string()],
+            example_inputs: vec!["bar at 120 bpm".to_string()],
+            example_outputs: vec!["2.000 seconds".to_string()],
+            proposed_at: Utc::now(),
+            status: ProposalStatus::Pending,
+        }
+    }
+
+    #[test]
+    fn operator_rule_proposals_default_empty() {
+        let report = valid_report();
+        assert!(report.operator_rule_proposals.is_empty());
+    }
+
+    #[test]
+    fn operator_rule_proposals_allowed_in_read_only_mode() {
+        let mut report = valid_report();
+        report.system_mode = SystemMode::ReadOnly;
+        report.operator_rule_proposals = vec![sample_operator_proposal("orp-1")];
+        // validate_dreaming_report does NOT block operator_rule_proposals in ReadOnly
+        assert!(validate_dreaming_report(&report).is_ok());
+    }
+
+    #[test]
+    fn operator_rule_proposals_allowed_in_active_mode() {
+        let mut report = valid_report();
+        report.operator_rule_proposals = vec![
+            sample_operator_proposal("orp-1"),
+            sample_operator_proposal("orp-2"),
+        ];
+        assert!(validate_dreaming_report(&report).is_ok());
+        assert_eq!(report.operator_rule_proposals.len(), 2);
+    }
+
+    #[test]
+    fn operator_rule_proposal_roundtrips_json() {
+        let mut report = valid_report();
+        report.operator_rule_proposals = vec![sample_operator_proposal("orp-xyz")];
+        let json = serde_json::to_string(&report).unwrap();
+        let back: DreamingReport = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.operator_rule_proposals.len(), 1);
+        assert_eq!(back.operator_rule_proposals[0].id, "orp-xyz");
+    }
+
+    #[test]
+    fn old_report_without_operator_proposals_deserializes() {
+        // Simulate a report serialized before the field was added
+        // (serde(default) must handle this gracefully)
+        let json = r#"{
+            "dream_id": "d1",
+            "batch_window": "2026-04-01",
+            "system_mode": "Active",
+            "soul_md_hash_verified": true,
+            "soul_md_changed": false,
+            "partition": {"clean_success":5,"qualified_success":0,"failure_partial":0,"unsafe_blocked":0},
+            "health_signal": "Healthy",
+            "pattern_statement": "ok",
+            "failure_classifications": [],
+            "lens_analysis": {"by_tool":null,"by_agent_role":null,"by_memory_usage":null},
+            "lesson_cards": [],
+            "l3_patch_proposals": [],
+            "tool_description_fixes": [],
+            "routing_weight_hints": [],
+            "orchestrator_dispatch": [],
+            "insufficient_evidence_notes": [],
+            "dreamer_confidence": "High",
+            "suggested_next_batch_focus": "nothing",
+            "read_only_suppressions": []
+        }"#;
+        let report: DreamingReport = serde_json::from_str(json).unwrap();
+        // operator_rule_proposals should default to empty vec
+        assert!(report.operator_rule_proposals.is_empty());
     }
 }

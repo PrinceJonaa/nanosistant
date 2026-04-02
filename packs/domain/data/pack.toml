@@ -1,0 +1,25 @@
+[pack]
+name = "nstn-data"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Data analysis: descriptive statistics, correlation, percentiles, z-scores, normalization, and outlier detection."
+nstn_version = ">=0.6.0"
+domain = "data"
+tier = "Domain"
+tags = ["statistics", "mean", "median", "correlation", "percentile", "z-score", "normalization", "outlier", "regression"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/data"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 30
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "mean", "median", "mode", "average", "sum", "count",
+  "variance", "standard deviation", "percentile", "quartile",
+  "correlation", "covariance", "regression", "z-score",
+  "normalize", "outlier", "distribution", "histogram",
+  "frequency", "range", "iqr"
+]
+semantic_description = "Descriptive statistics and data analysis: mean, median, correlation, percentiles, normalization, outlier detection"
+confidence_threshold = 0.70

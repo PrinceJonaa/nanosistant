@@ -1,0 +1,23 @@
+[pack]
+name = "nstn-code"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Code utilities: semver parsing and comparison, base64/hex encoding, hashing, UUID generation, and regex helpers."
+nstn_version = ">=0.6.0"
+domain = "code"
+tier = "Domain"
+tags = ["semver", "base64", "hex", "hash", "uuid", "encoding", "regex", "checksum", "bit-manipulation"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/code"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 25
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "semver", "version", "base64", "encode", "decode", "hex",
+  "hash", "sha", "md5", "checksum", "uuid", "crc",
+  "bit", "byte", "binary", "octal", "regex", "escape"
+]
+semantic_description = "Code and encoding utilities: semver comparison, base64/hex encoding, cryptographic hashing, UUID generation"
+confidence_threshold = 0.72

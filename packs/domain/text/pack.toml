@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-text"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Text analysis: word count, readability scores, syllable counting, character frequency, and text similarity."
+nstn_version = ">=0.6.0"
+domain = "text"
+tier = "Domain"
+tags = ["text", "word-count", "readability", "flesch", "syllable", "n-gram", "similarity", "edit-distance", "tokenize"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/text"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 20
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "word", "words", "character", "sentence", "paragraph",
+  "readability", "flesch", "syllable", "text", "count",
+  "similarity", "edit distance", "levenshtein", "n-gram",
+  "tokenize", "frequency", "longest common", "palindrome"
+]
+semantic_description = "Text analysis: word and character counts, readability scores, syllables, edit distance, and text similarity"
+confidence_threshold = 0.70

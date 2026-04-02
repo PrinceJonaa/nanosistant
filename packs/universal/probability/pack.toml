@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-probability"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal probability: distributions, Bayes theorem, combinatorics, expected value, variance, hypothesis testing."
+nstn_version = ">=0.6.0"
+domain = "universal"
+tier = "Universal"
+tags = ["probability", "statistics", "bayes", "distribution", "combinatorics", "expected-value", "variance"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/probability"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 22
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "probability", "bayes", "conditional", "distribution",
+  "normal", "binomial", "poisson", "expected value",
+  "variance", "standard deviation", "permutation", "combination",
+  "factorial", "confidence interval", "p-value"
+]
+semantic_description = "Probability theory and statistics: Bayes theorem, probability distributions, combinatorics, hypothesis testing"
+confidence_threshold = 0.70

@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-geo"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Geographic calculations: Haversine distance, coordinate conversion, bounding boxes, bearing, and map projections."
+nstn_version = ">=0.6.0"
+domain = "geo"
+tier = "Domain"
+tags = ["geo", "distance", "latitude", "longitude", "haversine", "coordinates", "bearing", "projection", "geocoding"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/geo"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 18
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "distance", "latitude", "longitude", "coordinates", "geo",
+  "haversine", "miles", "kilometers", "bearing", "heading",
+  "bounding box", "radius", "point", "map", "projection",
+  "mercator", "utm", "wgs84"
+]
+semantic_description = "Geographic calculations: great-circle distance, coordinate conversion, bearing, bounding boxes, map projections"
+confidence_threshold = 0.72

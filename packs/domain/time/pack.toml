@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-time"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Time and date operations: timezone conversion, duration arithmetic, calendar calculations, and ISO 8601 formatting."
+nstn_version = ">=0.6.0"
+domain = "time"
+tier = "Domain"
+tags = ["time", "date", "timezone", "duration", "calendar", "iso8601", "epoch", "weekday", "leap-year"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/time"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 24
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "time", "date", "timezone", "utc", "offset", "convert",
+  "duration", "days", "hours", "minutes", "seconds",
+  "calendar", "weekday", "month", "year", "epoch",
+  "timestamp", "iso8601", "leap year", "business days"
+]
+semantic_description = "Date and time calculations: timezone conversion, duration arithmetic, calendar operations, ISO 8601 formatting"
+confidence_threshold = 0.70

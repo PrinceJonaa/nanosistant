@@ -1,0 +1,25 @@
+[pack]
+name = "nstn-physics"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Physics calculations: kinematics, thermodynamics, optics, electromagnetism, and unit conversions (SI/imperial)."
+nstn_version = ">=0.6.0"
+domain = "physics"
+tier = "Domain"
+tags = ["physics", "kinematics", "thermodynamics", "optics", "electromagnetism", "units", "force", "energy", "wave"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/physics"
+repository = "https://github.com/nanosistant/nanosistant"
+functions = 32
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "force", "mass", "acceleration", "velocity", "speed",
+  "energy", "work", "power", "momentum", "gravity",
+  "temperature", "pressure", "volume", "frequency", "wavelength",
+  "current", "voltage", "resistance", "capacitance", "inductance",
+  "joule", "newton", "watt", "kelvin", "pascal"
+]
+semantic_description = "Physics calculations: kinematics, thermodynamics, electromagnetism, optics, and SI/imperial unit conversions"
+confidence_threshold = 0.72
