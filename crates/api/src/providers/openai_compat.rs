@@ -16,11 +16,21 @@ use super::{Provider, ProviderFuture};
 
 pub const DEFAULT_XAI_BASE_URL: &str = "https://api.x.ai/v1";
 pub const DEFAULT_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
+pub const DEFAULT_AZURE_API_VERSION: &str = "2025-04-01-preview";
 const REQUEST_ID_HEADER: &str = "request-id";
 const ALT_REQUEST_ID_HEADER: &str = "x-request-id";
 const DEFAULT_INITIAL_BACKOFF: Duration = Duration::from_millis(200);
 const DEFAULT_MAX_BACKOFF: Duration = Duration::from_secs(2);
 const DEFAULT_MAX_RETRIES: u32 = 2;
+
+/// Authentication mode for the provider.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuthMode {
+    /// Standard Bearer token (Authorization: Bearer <key>)
+    Bearer,
+    /// Azure api-key header (api-key: <key>)
+    AzureApiKey,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OpenAiCompatConfig {
@@ -28,10 +38,14 @@ pub struct OpenAiCompatConfig {
     pub api_key_env: &'static str,
     pub base_url_env: &'static str,
     pub default_base_url: &'static str,
+    pub auth_mode: AuthMode,
+    /// If true, URL is Azure-style: {base_url}/openai/deployments/{model}/chat/completions?api-version=...
+    pub azure_url_format: bool,
 }
 
 const XAI_ENV_VARS: &[&str] = &["XAI_API_KEY"];
 const OPENAI_ENV_VARS: &[&str] = &["OPENAI_API_KEY"];
+const AZURE_ENV_VARS: &[&str] = &["AZURE_OPENAI_API_KEY"];
 
 impl OpenAiCompatConfig {
     #[must_use]
@@ -41,6 +55,8 @@ impl OpenAiCompatConfig {
             api_key_env: "XAI_API_KEY",
             base_url_env: "XAI_BASE_URL",
             default_base_url: DEFAULT_XAI_BASE_URL,
+            auth_mode: AuthMode::Bearer,
+            azure_url_format: false,
         }
     }
 
@@ -51,13 +67,30 @@ impl OpenAiCompatConfig {
             api_key_env: "OPENAI_API_KEY",
             base_url_env: "OPENAI_BASE_URL",
             default_base_url: DEFAULT_OPENAI_BASE_URL,
+            auth_mode: AuthMode::Bearer,
+            azure_url_format: false,
         }
     }
+
+    /// Azure OpenAI — uses api-key header and deployment-based URL format.
+    #[must_use]
+    pub const fn azure() -> Self {
+        Self {
+            provider_name: "Azure OpenAI",
+            api_key_env: "AZURE_OPENAI_API_KEY",
+            base_url_env: "AZURE_OPENAI_BASE_URL",
+            default_base_url: "",
+            auth_mode: AuthMode::AzureApiKey,
+            azure_url_format: true,
+        }
+    }
+
     #[must_use]
     pub fn credential_env_vars(self) -> &'static [&'static str] {
         match self.provider_name {
             "xAI" => XAI_ENV_VARS,
             "OpenAI" => OPENAI_ENV_VARS,
+            "Azure OpenAI" => AZURE_ENV_VARS,
             _ => &[],
         }
     }
@@ -68,6 +101,8 @@ pub struct OpenAiCompatClient {
     http: reqwest::Client,
     api_key: String,
     base_url: String,
+    auth_mode: AuthMode,
+    azure_url_format: bool,
     max_retries: u32,
     initial_backoff: Duration,
     max_backoff: Duration,
@@ -80,6 +115,8 @@ impl OpenAiCompatClient {
             http: reqwest::Client::new(),
             api_key: api_key.into(),
             base_url: read_base_url(config),
+            auth_mode: config.auth_mode,
+            azure_url_format: config.azure_url_format,
             max_retries: DEFAULT_MAX_RETRIES,
             initial_backoff: DEFAULT_INITIAL_BACKOFF,
             max_backoff: DEFAULT_MAX_BACKOFF,
@@ -185,12 +222,27 @@ impl OpenAiCompatClient {
         &self,
         request: &MessageRequest,
     ) -> Result<reqwest::Response, ApiError> {
-        let request_url = chat_completions_endpoint(&self.base_url);
-        self.http
+        let request_url = if self.azure_url_format {
+            // Azure: {base}/openai/deployments/{model}/chat/completions?api-version=...
+            let base = self.base_url.trim_end_matches('/');
+            format!(
+                "{base}/openai/deployments/{}/chat/completions?api-version={}",
+                request.model, DEFAULT_AZURE_API_VERSION
+            )
+        } else {
+            chat_completions_endpoint(&self.base_url)
+        };
+
+        let mut req = self.http
             .post(&request_url)
-            .header("content-type", "application/json")
-            .bearer_auth(&self.api_key)
-            .json(&build_chat_completion_request(request))
+            .header("content-type", "application/json");
+
+        req = match self.auth_mode {
+            AuthMode::Bearer => req.bearer_auth(&self.api_key),
+            AuthMode::AzureApiKey => req.header("api-key", &self.api_key),
+        };
+
+        req.json(&build_chat_completion_request(request))
             .send()
             .await
             .map_err(ApiError::from)

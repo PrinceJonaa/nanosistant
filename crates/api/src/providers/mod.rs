@@ -28,6 +28,7 @@ pub enum ProviderKind {
     NstnApi,
     Xai,
     OpenAi,
+    AzureOpenAi,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,7 +161,7 @@ pub fn resolve_model_alias(model: &str) -> String {
                     "grok-2" => "grok-2",
                     _ => trimmed,
                 },
-                ProviderKind::OpenAi => trimmed,
+                ProviderKind::OpenAi | ProviderKind::AzureOpenAi => trimmed,
             })
         })
         .map_or_else(|| trimmed.to_string(), ToOwned::to_owned)
@@ -189,6 +190,14 @@ pub fn detect_provider_kind(model: &str) -> ProviderKind {
     if let Some(metadata) = metadata_for_model(model) {
         return metadata.provider;
     }
+    // Check Azure first if the model looks like a GPT/o-series model
+    if is_azure_model(model) && openai_compat::has_api_key("AZURE_OPENAI_API_KEY") {
+        return ProviderKind::AzureOpenAi;
+    }
+    // Then check OpenAI for the same model names
+    if is_azure_model(model) && openai_compat::has_api_key("OPENAI_API_KEY") {
+        return ProviderKind::OpenAi;
+    }
     if nstn_provider::has_auth_from_env_or_saved().unwrap_or(false) {
         return ProviderKind::NstnApi;
     }
@@ -198,7 +207,19 @@ pub fn detect_provider_kind(model: &str) -> ProviderKind {
     if openai_compat::has_api_key("XAI_API_KEY") {
         return ProviderKind::Xai;
     }
+    if openai_compat::has_api_key("AZURE_OPENAI_API_KEY") {
+        return ProviderKind::AzureOpenAi;
+    }
     ProviderKind::NstnApi
+}
+
+/// Check if a model name looks like it should use Azure OpenAI.
+#[must_use]
+pub fn is_azure_model(model: &str) -> bool {
+    let lower = model.to_lowercase();
+    // GPT models or o-series that aren't xAI
+    lower.starts_with("gpt-") || lower.starts_with("o1") || lower.starts_with("o3")
+        || lower.starts_with("o4") || lower.contains("davinci") || lower.contains("turbo")
 }
 
 #[must_use]

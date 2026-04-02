@@ -23,6 +23,7 @@ pub enum ProviderClient {
     NstnApi(NstnApiClient),
     Xai(OpenAiCompatClient),
     OpenAi(OpenAiCompatClient),
+    AzureOpenAi(OpenAiCompatClient),
 }
 
 impl ProviderClient {
@@ -46,6 +47,9 @@ impl ProviderClient {
             ProviderKind::OpenAi => Ok(Self::OpenAi(OpenAiCompatClient::from_env(
                 OpenAiCompatConfig::openai(),
             )?)),
+            ProviderKind::AzureOpenAi => Ok(Self::AzureOpenAi(OpenAiCompatClient::from_env(
+                OpenAiCompatConfig::azure(),
+            )?)),
         }
     }
 
@@ -55,6 +59,7 @@ impl ProviderClient {
             Self::NstnApi(_) => ProviderKind::NstnApi,
             Self::Xai(_) => ProviderKind::Xai,
             Self::OpenAi(_) => ProviderKind::OpenAi,
+            Self::AzureOpenAi(_) => ProviderKind::AzureOpenAi,
         }
     }
 
@@ -64,7 +69,7 @@ impl ProviderClient {
     ) -> Result<MessageResponse, ApiError> {
         match self {
             Self::NstnApi(client) => send_via_provider(client, request).await,
-            Self::Xai(client) | Self::OpenAi(client) => send_via_provider(client, request).await,
+            Self::Xai(client) | Self::OpenAi(client) | Self::AzureOpenAi(client) => send_via_provider(client, request).await,
         }
     }
 
@@ -76,9 +81,11 @@ impl ProviderClient {
             Self::NstnApi(client) => stream_via_provider(client, request)
                 .await
                 .map(MessageStream::NstnApi),
-            Self::Xai(client) | Self::OpenAi(client) => stream_via_provider(client, request)
-                .await
-                .map(MessageStream::OpenAiCompat),
+            Self::Xai(client) | Self::OpenAi(client) | Self::AzureOpenAi(client) => {
+                stream_via_provider(client, request)
+                    .await
+                    .map(MessageStream::OpenAiCompat)
+            }
         }
     }
 }
