@@ -3,6 +3,79 @@
 All notable changes to Nanosistant are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] - 2026-04-02
+
+### Added
+
+#### Full MCP Client (6 transports)
+- `mcp.rs` — tool namespacing (`mcp__server__tool`), server signatures, config hashing
+- `mcp_client.rs` — bootstrap types for Stdio, SSE, HTTP, WebSocket, SDK, ManagedProxy
+- `mcp_stdio.rs` — async stdio transport (~1,700 lines): JSON-RPC 2.0, tool discovery with pagination, resource protocol, connection lifecycle
+- `mcp_config.rs` — McpServerConfig, 6 transport config types, McpConfig
+
+#### Sandbox / Filesystem Isolation
+- `FilesystemIsolationMode` — Off, WorkspaceOnly, AllowList
+- Container detection (Docker, Podman, K8s) via /.dockerenv, env vars, /proc/1/cgroup
+- Linux `unshare` namespace isolation for bash execution
+- Network isolation toggle
+- `SandboxConfig` → `SandboxStatus` resolution with fallback reasons
+
+#### Slash Commands System (28+ commands)
+- `/help`, `/status`, `/compact`, `/model`, `/permissions`, `/clear`, `/cost`
+- `/resume`, `/config`, `/memory`, `/init`, `/diff`, `/version`
+- `/bughunter`, `/branch`, `/worktree`, `/commit`, `/commit-push-pr`, `/pr`, `/issue`
+- `/ultraplan`, `/teleport`, `/agents`, `/skills`, `/plugins`
+- `SlashCommand::parse()`, `CommandRegistry`, `render_slash_command_help()`
+
+#### CLI / REPL (`nanosistant` binary)
+- Interactive REPL with model streaming and markdown rendering
+- Vim keybindings (Normal/Insert/Visual/Command modes) in input editor
+- `syntect` syntax highlighting in code blocks
+- `pulldown-cmark` markdown rendering to terminal
+- `Spinner` with animated braille frames
+- Non-interactive prompt mode for piped input
+- `--model`, `--permission-mode`, `--output-format`, `--help`, `--version`
+- Session resume from file
+
+#### Full OAuth System
+- PKCE S256 code challenge generation
+- `OAuthAuthorizationRequest` — builds authorize URL
+- Token exchange, refresh, callback parsing
+- File-based credential persistence (save/load/clear)
+
+#### Remote Session / Upstream Proxy
+- `RemoteSessionContext` — enabled flag, session ID, base URL from env
+- `UpstreamProxyBootstrap` — token reading, CA bundle resolution
+- `UpstreamProxyState` — proxy URL, NO_PROXY hosts
+
+#### SSE Runtime Streaming
+- `SseEvent` struct with event/data/id fields
+- `IncrementalSseParser` for streaming SSE chunks
+- Wire-format serialization
+
+#### Bootstrap System
+- `BootstrapPhase` enum (12 phases from ConfigLoad to Ready)
+- `BootstrapPlan` with ordered phase execution
+
+#### Compat Harness
+- `UpstreamPaths` — resolve upstream TypeScript source paths
+- `ExtractedManifest` — commands + tools + bootstrap plan extraction
+- Multi-candidate repo root resolution
+
+#### LSP Integration
+- `LspClient` — JSON-RPC over stdio to language servers
+- `LspManager` — multi-server management, extension-based routing
+- Full document lifecycle (open, change, hover, definition, diagnostics)
+- Type definitions: positions, ranges, diagnostics, completions
+
+### Stats
+- 470 tests passing (up from 365)
+- 43,000+ Rust lines + 2,100 Swift lines across 77 source files
+- 13 Rust crates + 1 Swift package
+- `nanosistant` CLI binary builds successfully
+
+---
+
 ## [0.3.0] - 2026-04-01
 
 ### Added

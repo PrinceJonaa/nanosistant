@@ -4,6 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::json::JsonValue;
+use crate::mcp_config::McpConfig;
 
 pub const CLAW_SETTINGS_SCHEMA_NAME: &str = "SettingsSchema";
 
@@ -65,6 +66,7 @@ pub struct RuntimeConfig {
     merged: BTreeMap<String, JsonValue>,
     loaded_entries: Vec<ConfigEntry>,
     feature_config: RuntimeFeatureConfig,
+    mcp: McpConfig,
 }
 
 #[derive(Debug)]
@@ -172,6 +174,7 @@ impl ConfigLoader {
             merged,
             loaded_entries,
             feature_config,
+            mcp: McpConfig::default(),
         })
     }
 }
@@ -183,6 +186,7 @@ impl RuntimeConfig {
             merged: BTreeMap::new(),
             loaded_entries: Vec::new(),
             feature_config: RuntimeFeatureConfig::default(),
+            mcp: McpConfig::default(),
         }
     }
 
@@ -229,6 +233,17 @@ impl RuntimeConfig {
     #[must_use]
     pub fn permission_mode(&self) -> Option<ResolvedPermissionMode> {
         self.feature_config.permission_mode
+    }
+
+    #[must_use]
+    pub fn mcp(&self) -> &McpConfig {
+        &self.mcp
+    }
+
+    #[must_use]
+    pub fn with_mcp(mut self, mcp: McpConfig) -> Self {
+        self.mcp = mcp;
+        self
     }
 }
 

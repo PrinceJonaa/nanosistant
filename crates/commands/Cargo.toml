@@ -1,0 +1,16 @@
+[package]
+name = "nstn-commands"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+nstn-runtime = { path = "../runtime" }
+nstn-plugins = { path = "../plugins" }
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+
+[lints]
+workspace = true

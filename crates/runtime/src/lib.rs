@@ -1,14 +1,23 @@
+pub mod bootstrap;
 mod compact;
 mod config;
 mod conversation;
 mod hooks;
 mod json;
+mod mcp_config;
+mod mcp;
+mod mcp_client;
+mod mcp_stdio;
 mod oauth;
 mod permissions;
 mod prompt;
+mod remote;
+pub mod sandbox;
 mod session;
+pub mod sse;
 mod usage;
 
+pub use bootstrap::{BootstrapPhase, BootstrapPlan};
 pub use compact::{
     compact_session, estimate_session_tokens, format_compact_summary,
     get_compact_continuation_message, should_compact, CompactionConfig, CompactionResult,
@@ -17,6 +26,27 @@ pub use config::{
     ConfigEntry, ConfigError, ConfigLoader, ConfigSource, OAuthConfig, ResolvedPermissionMode,
     RuntimeConfig, RuntimeFeatureConfig, RuntimeHookConfig, RuntimePluginConfig,
     CLAW_SETTINGS_SCHEMA_NAME,
+};
+pub use mcp_config::{
+    McpConfig, McpManagedProxyConfig, McpOAuthConfig, McpRemoteServerConfig, McpSdkServerConfig,
+    McpServerConfig, McpStdioServerConfig, McpTransport, McpWebSocketServerConfig,
+    ScopedMcpServerConfig,
+};
+pub use mcp::{
+    mcp_server_signature, mcp_tool_name, mcp_tool_prefix, normalize_name_for_mcp,
+    scoped_mcp_config_hash, unwrap_ccr_proxy_url,
+};
+pub use mcp_client::{
+    McpClientAuth, McpClientBootstrap, McpClientTransport, McpManagedProxyTransport,
+    McpRemoteTransport, McpSdkTransport, McpStdioTransport,
+};
+pub use mcp_stdio::{
+    JsonRpcError, JsonRpcId, JsonRpcRequest, JsonRpcResponse, ManagedMcpTool, McpInitializeClientInfo,
+    McpInitializeParams, McpInitializeResult, McpInitializeServerInfo, McpListResourcesParams,
+    McpListResourcesResult, McpListToolsParams, McpListToolsResult, McpReadResourceParams,
+    McpReadResourceResult, McpResource, McpResourceContents, McpServerManager,
+    McpServerManagerError, McpStdioProcess, McpTool, McpToolCallContent, McpToolCallParams,
+    McpToolCallResult, UnsupportedMcpServer, spawn_mcp_stdio_process,
 };
 pub use oauth::{
     clear_oauth_credentials, code_challenge_s256, credentials_path, generate_pkce_pair,
@@ -38,7 +68,20 @@ pub use prompt::{
     load_system_prompt, prepend_bullets, ContextFile, ProjectContext, PromptBuildError,
     SystemPromptBuilder, FRONTIER_MODEL_NAME, SYSTEM_PROMPT_DYNAMIC_BOUNDARY,
 };
+pub use remote::{
+    inherited_upstream_proxy_env, no_proxy_list, read_token, upstream_proxy_ws_url,
+    RemoteSessionContext, UpstreamProxyBootstrap, UpstreamProxyState, DEFAULT_REMOTE_BASE_URL,
+    DEFAULT_SESSION_TOKEN_PATH, DEFAULT_SYSTEM_CA_BUNDLE, NO_PROXY_HOSTS,
+    UPSTREAM_PROXY_ENV_KEYS,
+};
 pub use session::{ContentBlock, ConversationMessage, MessageRole, Session, SessionError};
+pub use sandbox::{
+    build_linux_sandbox_command, detect_container_environment,
+    detect_container_environment_from, resolve_sandbox_status, resolve_sandbox_status_for_request,
+    ContainerEnvironment, FilesystemIsolationMode, LinuxSandboxCommand, SandboxConfig,
+    SandboxDetectionInputs, SandboxRequest, SandboxStatus,
+};
+pub use sse::{IncrementalSseParser, SseEvent};
 pub use usage::{
     format_usd, pricing_for_model, ModelPricing, TokenUsage, UsageCostEstimate, UsageTracker,
 };

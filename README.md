@@ -128,7 +128,7 @@ Ruflo runs as a child process — Rust is always the entry point, always the exi
 | `crates/ruvector` | `nstn-ruvector` | ~600 | 11 | Vector store, document ingestion, domain-filtered search |
 | `crates/server` | `nstn-server` | ~500 | 2 | axum HTTP/SSE server |
 
-**Total: 365+ tests, ~31,200 lines across 69 source files (Rust + Swift).**
+**Total: 470 tests, ~45,100 lines across 77+ source files (Rust + Swift), 13 Rust crates + 1 Swift package.**
 
 ---
 
@@ -256,18 +256,31 @@ nanosistant/
 - [x] ruflo swarm coordination (spawn, status, coordinate, cancel)
 - [x] 350 passing tests
 
-### v0.3.0 (current)
+### v0.3.0
 - [x] iOS NanoClaw client (Swift Package, 2,100 lines)
 - [x] Knowledge ingestion pipeline (TOML-configurable, directory recursive)
 - [x] Session persistence (JSON per-session, save/load/delete/recent)
 - [x] Production deployment (Dockerfile, docker-compose, health endpoint)
 - [x] 365+ tests across Rust and Swift
 
-### v0.4.0 (next)
-- [ ] Real LLM API integration (wire ConversationRuntime to Anthropic API)
-- [ ] Live ruflo MCP connection (spawn and test end-to-end)
-- [ ] Native gRPC in Swift client (replace HTTP bridge)
+### v0.4.0 (current)
+- [x] Full MCP client (6 transports: Stdio, SSE, HTTP, WebSocket, SDK, ManagedProxy)
+- [x] Sandbox / filesystem isolation (WorkspaceOnly, AllowList, container detection, unshare)
+- [x] Slash commands (28+ commands with parser and handlers)
+- [x] CLI / REPL (`nanosistant` binary with vim keybindings, markdown rendering, syntax highlighting)
+- [x] Full OAuth system (PKCE S256, credential persistence, token refresh)
+- [x] Remote session / upstream proxy
+- [x] SSE runtime streaming
+- [x] Bootstrap system (12 phases)
+- [x] Compat harness (manifest extraction)
+- [x] LSP integration (multi-server, extension-based routing)
+- [x] 470 tests, 13 crates, `nanosistant` CLI binary
+
+### v0.5.0 (next)
+- [ ] Live LLM API integration (wire ConversationRuntime to Anthropic streaming API)
+- [ ] Live ruflo MCP end-to-end (spawn ruflo, route through it, get responses)
 - [ ] Knowledge ingestion for operator’s framework docs (all 22 files)
+- [ ] Native gRPC in Swift client (replace HTTP bridge)
 - [ ] Session sync across devices via gRPC
 
 ---
