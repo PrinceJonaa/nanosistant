@@ -29,3 +29,4 @@ node_modules/
 # Coverage
 coverage/
 *.profraw
+.nstn-agents/
