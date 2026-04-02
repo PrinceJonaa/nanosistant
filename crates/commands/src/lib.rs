@@ -524,20 +524,20 @@ pub struct PluginsCommandResult {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum DefinitionSource {
     ProjectCodex,
-    ProjectClaw,
+    ProjectConfig,
     UserCodexHome,
     UserCodex,
-    UserClaw,
+    UserConfig,
 }
 
 impl DefinitionSource {
     fn label(self) -> &'static str {
         match self {
             Self::ProjectCodex => "Project (.codex)",
-            Self::ProjectClaw => "Project (.nanosistant)",
+            Self::ProjectConfig => "Project (.nanosistant)",
             Self::UserCodexHome => "User ($CODEX_HOME)",
             Self::UserCodex => "User (~/.codex)",
-            Self::UserClaw => "User (~/.nanosistant)",
+            Self::UserConfig => "User (~/.nanosistant)",
         }
     }
 }
@@ -1211,7 +1211,7 @@ fn discover_definition_roots(cwd: &Path, subdir: &str) -> Vec<(DefinitionSource,
         );
         push_unique_root(
             &mut roots,
-            DefinitionSource::ProjectClaw,
+            DefinitionSource::ProjectConfig,
             ancestor.join(".nanosistant").join(subdir),
         );
     }
@@ -1234,7 +1234,7 @@ fn discover_definition_roots(cwd: &Path, subdir: &str) -> Vec<(DefinitionSource,
         );
         push_unique_root(
             &mut roots,
-            DefinitionSource::UserClaw,
+            DefinitionSource::UserConfig,
             home.join(".nanosistant").join(subdir),
         );
     }
@@ -1254,7 +1254,7 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         );
         push_unique_skill_root(
             &mut roots,
-            DefinitionSource::ProjectClaw,
+            DefinitionSource::ProjectConfig,
             ancestor.join(".nanosistant").join("skills"),
             SkillOrigin::SkillsDir,
         );
@@ -1266,7 +1266,7 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         );
         push_unique_skill_root(
             &mut roots,
-            DefinitionSource::ProjectClaw,
+            DefinitionSource::ProjectConfig,
             ancestor.join(".nanosistant").join("commands"),
             SkillOrigin::LegacyCommandsDir,
         );
@@ -1304,13 +1304,13 @@ fn discover_skill_roots(cwd: &Path) -> Vec<SkillRoot> {
         );
         push_unique_skill_root(
             &mut roots,
-            DefinitionSource::UserClaw,
+            DefinitionSource::UserConfig,
             home.join(".nanosistant").join("skills"),
             SkillOrigin::SkillsDir,
         );
         push_unique_skill_root(
             &mut roots,
-            DefinitionSource::UserClaw,
+            DefinitionSource::UserConfig,
             home.join(".nanosistant").join("commands"),
             SkillOrigin::LegacyCommandsDir,
         );
@@ -1546,10 +1546,10 @@ fn render_agents_report(agents: &[AgentSummary]) -> String {
 
     for source in [
         DefinitionSource::ProjectCodex,
-        DefinitionSource::ProjectClaw,
+        DefinitionSource::ProjectConfig,
         DefinitionSource::UserCodexHome,
         DefinitionSource::UserCodex,
-        DefinitionSource::UserClaw,
+        DefinitionSource::UserConfig,
     ] {
         let group = agents
             .iter()
@@ -1604,10 +1604,10 @@ fn render_skills_report(skills: &[SkillSummary]) -> String {
 
     for source in [
         DefinitionSource::ProjectCodex,
-        DefinitionSource::ProjectClaw,
+        DefinitionSource::ProjectConfig,
         DefinitionSource::UserCodexHome,
         DefinitionSource::UserCodex,
-        DefinitionSource::UserClaw,
+        DefinitionSource::UserConfig,
     ] {
         let group = skills
             .iter()

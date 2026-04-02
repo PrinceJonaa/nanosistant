@@ -80,10 +80,10 @@ struct RepoDetection {
 pub(crate) fn initialize_repo(cwd: &Path) -> Result<InitReport, Box<dyn std::error::Error>> {
     let mut artifacts = Vec::new();
 
-    let claw_dir = cwd.join(".nanosistant");
+    let nstn_dir = cwd.join(".nanosistant");
     artifacts.push(InitArtifact {
         name: ".nanosistant/",
-        status: ensure_dir(&claw_dir)?,
+        status: ensure_dir(&nstn_dir)?,
     });
 
     let nstn_json = cwd.join(".nanosistant.json");

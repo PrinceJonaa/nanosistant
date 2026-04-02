@@ -42,7 +42,7 @@ pub struct McpSdkServerConfig {
     pub name: String,
 }
 
-/// Managed proxy (claude.ai) MCP server config.
+/// Managed proxy (platform-hosted) MCP server config.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct McpManagedProxyConfig {
     pub url: String,

@@ -201,9 +201,9 @@ fn discover_instruction_files(cwd: &Path) -> std::io::Result<Vec<ContextFile>> {
     let mut files = Vec::new();
     for dir in directories {
         for candidate in [
-            dir.join("CLAW.md"),
-            dir.join("CLAW.local.md"),
-            dir.join(".nanosistant").join("CLAW.md"),
+            dir.join("NANOSISTANT.md"),
+            dir.join("NANOSISTANT.local.md"),
+            dir.join(".nanosistant").join("NANOSISTANT.md"),
             dir.join(".nanosistant").join("instructions.md"),
         ] {
             push_context_file(&mut files, candidate)?;
@@ -282,7 +282,7 @@ fn render_project_context(project_context: &ProjectContext) -> String {
     ];
     if !project_context.instruction_files.is_empty() {
         bullets.push(format!(
-            "Claw instruction files discovered: {}.",
+            "Nanosistant instruction files discovered: {}.",
             project_context.instruction_files.len()
         ));
     }
@@ -301,7 +301,7 @@ fn render_project_context(project_context: &ProjectContext) -> String {
 }
 
 fn render_instruction_files(files: &[ContextFile]) -> String {
-    let mut sections = vec!["# Claw instructions".to_string()];
+    let mut sections = vec!["# Nanosistant instructions".to_string()];
     let mut remaining_chars = MAX_TOTAL_INSTRUCTION_CHARS;
     for file in files {
         if remaining_chars == 0 {
@@ -421,7 +421,7 @@ fn render_config_section(config: &RuntimeConfig) -> String {
     let mut lines = vec!["# Runtime config".to_string()];
     if config.loaded_entries().is_empty() {
         lines.extend(prepend_bullets(vec![
-            "No Claw Code settings files loaded.".to_string()
+            "No Nanosistant settings files loaded.".to_string()
         ]));
         return lines.join("\n");
     }
@@ -518,19 +518,19 @@ mod tests {
         let root = temp_dir();
         let nested = root.join("apps").join("api");
         fs::create_dir_all(nested.join(".nanosistant")).expect("nested claw dir");
-        fs::write(root.join("CLAW.md"), "root instructions").expect("write root instructions");
-        fs::write(root.join("CLAW.local.md"), "local instructions")
+        fs::write(root.join("NANOSISTANT.md"), "root instructions").expect("write root instructions");
+        fs::write(root.join("NANOSISTANT.local.md"), "local instructions")
             .expect("write local instructions");
         fs::create_dir_all(root.join("apps")).expect("apps dir");
         fs::create_dir_all(root.join("apps").join(".nanosistant")).expect("apps claw dir");
-        fs::write(root.join("apps").join("CLAW.md"), "apps instructions")
+        fs::write(root.join("apps").join("NANOSISTANT.md"), "apps instructions")
             .expect("write apps instructions");
         fs::write(
             root.join("apps").join(".nanosistant").join("instructions.md"),
             "apps dot claw instructions",
         )
         .expect("write apps dot claw instructions");
-        fs::write(nested.join(".nanosistant").join("CLAW.md"), "nested rules")
+        fs::write(nested.join(".nanosistant").join("NANOSISTANT.md"), "nested rules")
             .expect("write nested rules");
         fs::write(
             nested.join(".nanosistant").join("instructions.md"),
@@ -564,8 +564,8 @@ mod tests {
         let root = temp_dir();
         let nested = root.join("apps").join("api");
         fs::create_dir_all(&nested).expect("nested dir");
-        fs::write(root.join("CLAW.md"), "same rules\n\n").expect("write root");
-        fs::write(nested.join("CLAW.md"), "same rules\n").expect("write nested");
+        fs::write(root.join("NANOSISTANT.md"), "same rules\n\n").expect("write root");
+        fs::write(nested.join("NANOSISTANT.md"), "same rules\n").expect("write nested");
 
         let context = ProjectContext::discover(&nested, "2026-03-31").expect("context should load");
         assert_eq!(context.instruction_files.len(), 1);
@@ -593,8 +593,8 @@ mod tests {
     #[test]
     fn displays_context_paths_compactly() {
         assert_eq!(
-            display_context_path(Path::new("/tmp/project/.nanosistant/CLAW.md")),
-            "CLAW.md"
+            display_context_path(Path::new("/tmp/project/.nanosistant/NANOSISTANT.md")),
+            "NANOSISTANT.md"
         );
     }
 
@@ -608,7 +608,7 @@ mod tests {
             .current_dir(&root)
             .status()
             .expect("git init should run");
-        fs::write(root.join("CLAW.md"), "rules").expect("write instructions");
+        fs::write(root.join("NANOSISTANT.md"), "rules").expect("write instructions");
         fs::write(root.join("tracked.txt"), "hello").expect("write tracked file");
 
         let context =
@@ -616,7 +616,7 @@ mod tests {
 
         let status = context.git_status.expect("git status should be present");
         assert!(status.contains("## No commits yet on") || status.contains("## "));
-        assert!(status.contains("?? CLAW.md"));
+        assert!(status.contains("?? NANOSISTANT.md"));
         assert!(status.contains("?? tracked.txt"));
         assert!(context.git_diff.is_none());
 
@@ -670,7 +670,7 @@ mod tests {
     fn load_system_prompt_reads_claw_files_and_config() {
         let root = temp_dir();
         fs::create_dir_all(root.join(".nanosistant")).expect("claw dir");
-        fs::write(root.join("CLAW.md"), "Project rules").expect("write instructions");
+        fs::write(root.join("NANOSISTANT.md"), "Project rules").expect("write instructions");
         fs::write(
             root.join(".nanosistant").join("settings.json"),
             r#"{"permissionMode":"acceptEdits"}"#,
@@ -712,7 +712,7 @@ mod tests {
     fn renders_claw_code_style_sections_with_project_context() {
         let root = temp_dir();
         fs::create_dir_all(root.join(".nanosistant")).expect("claw dir");
-        fs::write(root.join("CLAW.md"), "Project rules").expect("write CLAW.md");
+        fs::write(root.join("NANOSISTANT.md"), "Project rules").expect("write NANOSISTANT.md");
         fs::write(
             root.join(".nanosistant").join("settings.json"),
             r#"{"permissionMode":"acceptEdits"}"#,
@@ -733,7 +733,7 @@ mod tests {
 
         assert!(prompt.contains("# System"));
         assert!(prompt.contains("# Project context"));
-        assert!(prompt.contains("# Claw instructions"));
+        assert!(prompt.contains("# Nanosistant instructions"));
         assert!(prompt.contains("Project rules"));
         assert!(prompt.contains("permissionMode"));
         assert!(prompt.contains(SYSTEM_PROMPT_DYNAMIC_BOUNDARY));
@@ -775,10 +775,10 @@ mod tests {
     #[test]
     fn renders_instruction_file_metadata() {
         let rendered = render_instruction_files(&[ContextFile {
-            path: PathBuf::from("/tmp/project/CLAW.md"),
+            path: PathBuf::from("/tmp/project/NANOSISTANT.md"),
             content: "Project rules".to_string(),
         }]);
-        assert!(rendered.contains("# Claw instructions"));
+        assert!(rendered.contains("# Nanosistant instructions"));
         assert!(rendered.contains("scope: /tmp/project"));
         assert!(rendered.contains("Project rules"));
     }

@@ -2429,7 +2429,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires claw-code bundled plugin directories"]
+    #[ignore = "requires bundled plugin directories"]
     fn discovers_builtin_and_bundled_plugins() {
         let manager = PluginManager::new(PluginManagerConfig::new(temp_dir("discover")));
         let plugins = manager.list_plugins().expect("plugins should list");
@@ -2521,7 +2521,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "requires claw-code bundled plugin directories"]
+    #[ignore = "requires bundled plugin directories"]
     fn default_bundled_root_loads_repo_bundles_as_installed_plugins() {
         let config_home = temp_dir("default-bundled-home");
         let manager = PluginManager::new(PluginManagerConfig::new(&config_home));

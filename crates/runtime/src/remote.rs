@@ -5,7 +5,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_REMOTE_BASE_URL: &str = "https://api.anthropic.com";
-pub const DEFAULT_SESSION_TOKEN_PATH: &str = "/run/ccr/session_token";
+pub const DEFAULT_SESSION_TOKEN_PATH: &str = "/run/nanosistant/session_token";
 pub const DEFAULT_SYSTEM_CA_BUNDLE: &str = "/etc/ssl/certs/ca-certificates.crt";
 
 pub const UPSTREAM_PROXY_ENV_KEYS: [&str; 8] = [
@@ -96,22 +96,22 @@ impl UpstreamProxyBootstrap {
     pub fn from_env_map(env_map: &BTreeMap<String, String>) -> Self {
         let remote = RemoteSessionContext::from_env_map(env_map);
         let token_path = env_map
-            .get("CCR_SESSION_TOKEN_PATH")
+            .get("NSTN_SESSION_TOKEN_PATH")
             .filter(|value| !value.is_empty())
             .map_or_else(|| PathBuf::from(DEFAULT_SESSION_TOKEN_PATH), PathBuf::from);
         let system_ca_path = env_map
-            .get("CCR_SYSTEM_CA_BUNDLE")
+            .get("NSTN_SYSTEM_CA_BUNDLE")
             .filter(|value| !value.is_empty())
             .map_or_else(|| PathBuf::from(DEFAULT_SYSTEM_CA_BUNDLE), PathBuf::from);
         let ca_bundle_path = env_map
-            .get("CCR_CA_BUNDLE_PATH")
+            .get("NSTN_CA_BUNDLE_PATH")
             .filter(|value| !value.is_empty())
             .map_or_else(default_ca_bundle_path, PathBuf::from);
         let token = read_token(&token_path).ok().flatten();
 
         Self {
             remote,
-            upstream_proxy_enabled: env_truthy(env_map.get("CCR_UPSTREAM_PROXY_ENABLED")),
+            upstream_proxy_enabled: env_truthy(env_map.get("NSTN_UPSTREAM_PROXY_ENABLED")),
             token_path,
             ca_bundle_path,
             system_ca_path,
@@ -237,7 +237,7 @@ pub fn inherited_upstream_proxy_env(
 fn default_ca_bundle_path() -> PathBuf {
     env::var_os("HOME")
         .map_or_else(|| PathBuf::from("."), PathBuf::from)
-        .join(".ccr")
+        .join(".nanosistant")
         .join("ca-bundle.crt")
 }
 
@@ -292,7 +292,7 @@ mod tests {
     fn bootstrap_fails_open_when_token_or_session_is_missing() {
         let env = BTreeMap::from([
             ("NSTN_REMOTE".to_string(), "1".to_string()),
-            ("CCR_UPSTREAM_PROXY_ENABLED".to_string(), "true".to_string()),
+            ("NSTN_UPSTREAM_PROXY_ENABLED".to_string(), "true".to_string()),
         ]);
         let bootstrap = UpstreamProxyBootstrap::from_env_map(&env);
         assert!(!bootstrap.should_enable());
@@ -308,7 +308,7 @@ mod tests {
 
         let env = BTreeMap::from([
             ("NSTN_REMOTE".to_string(), "1".to_string()),
-            ("CCR_UPSTREAM_PROXY_ENABLED".to_string(), "true".to_string()),
+            ("NSTN_UPSTREAM_PROXY_ENABLED".to_string(), "true".to_string()),
             (
                 "NSTN_REMOTE_SESSION_ID".to_string(),
                 "session-123".to_string(),
@@ -318,11 +318,11 @@ mod tests {
                 "https://remote.test".to_string(),
             ),
             (
-                "CCR_SESSION_TOKEN_PATH".to_string(),
+                "NSTN_SESSION_TOKEN_PATH".to_string(),
                 token_path.to_string_lossy().into_owned(),
             ),
             (
-                "CCR_CA_BUNDLE_PATH".to_string(),
+                "NSTN_CA_BUNDLE_PATH".to_string(),
                 root.join("ca-bundle.crt").to_string_lossy().into_owned(),
             ),
         ]);

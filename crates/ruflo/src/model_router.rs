@@ -1,4 +1,4 @@
-//! Model router — selects the optimal Claude tier for a given task.
+//! Model router — selects the optimal model tier for a given task.
 //!
 //! Ports the ruflo upstream TypeScript model-routing concept to Rust.
 //! Routing is fully deterministic — no LLM inference.
