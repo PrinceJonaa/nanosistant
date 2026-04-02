@@ -1,0 +1,85 @@
+title: "[Pack] "
+labels:
+  - pack-showcase
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Pack Showcase
+        Share a pack you've built for Nanosistant. This is the place to show off what it does, how to install it, and why others should use it.
+        To submit a pack for inclusion in the core repo, open a PR and follow the pack submission checklist in [PULL_REQUEST_TEMPLATE.md](https://github.com/PrinceJonaa/nanosistant/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
+  - type: input
+    id: pack_name
+    attributes:
+      label: Pack name
+      description: The name from your pack.toml
+      placeholder: "e.g. music-theory-pro"
+    validations:
+      required: true
+  - type: input
+    id: pack_version
+    attributes:
+      label: Version
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: pack_repo
+    attributes:
+      label: Repository / install URL
+      description: Where can others find or install it?
+      placeholder: "https://github.com/yourname/your-pack"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What does this pack do?
+      description: Describe its deterministic functions and routing rules in plain language.
+    validations:
+      required: true
+  - type: textarea
+    id: install
+    attributes:
+      label: Installation and usage
+      description: How do you install and activate it?
+      placeholder: |
+        ```bash
+        nanosistant /packs install music-theory-pro
+        ```
+
+        Example queries it handles:
+        - "What are the scale degrees for D Dorian?"
+        - "Give me all voicings for Cmaj7"
+    validations:
+      required: true
+  - type: dropdown
+    id: modules
+    attributes:
+      label: Primary module(s)
+      multiple: true
+      options:
+        - logic
+        - graph
+        - information
+        - probability
+        - music
+        - finance
+        - data
+        - time
+        - text
+        - code
+        - geo
+        - physics
+        - health
+        - social
+        - new / custom
+  - type: checkboxes
+    id: quality
+    attributes:
+      label: Pack quality checklist
+      options:
+        - label: All functions are pure (same input → same output)
+        - label: Unit tests included
+        - label: pack.toml is valid
+        - label: No `unsafe` Rust code

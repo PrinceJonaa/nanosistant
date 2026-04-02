@@ -1,0 +1,58 @@
+title: "[Q] "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Ask a Question
+        Use this template for questions about Nanosistant — architecture, setup, pack development, routing behavior, or anything else.
+        For bugs, open an [issue](https://github.com/PrinceJonaa/nanosistant/issues/new/choose).
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Be as specific as possible. Include what you've already tried or read.
+    validations:
+      required: true
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic area
+      options:
+        - Setup / build / installation
+        - Architecture (3-tier design)
+        - Routing (confidence ladder)
+        - ruflo MCP integration
+        - Deterministic modules
+        - Memory system (L0–L3)
+        - Pack system (nstn-packs)
+        - CLI / REPL
+        - iOS client (NanoClawKit)
+        - Knowledge tier (RuVector / Qdrant)
+        - Contributing / development
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant context
+      description: |
+        Share any relevant details — Rust version, OS, config snippets, error output, or links to related docs.
+      placeholder: |
+        - Rust: 1.78.0
+        - OS: macOS 14.4
+        - Error:
+        ```
+        paste error here
+        ```
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before posting
+      options:
+        - label: I searched existing Discussions and issues
+          required: true
+        - label: I checked [CONTRIBUTING.md](https://github.com/PrinceJonaa/nanosistant/blob/main/CONTRIBUTING.md)
+          required: true

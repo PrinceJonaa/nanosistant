@@ -1,0 +1,89 @@
+title: "[Idea] "
+labels:
+  - idea
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Proposal / New Pack Idea
+        Use this template to propose a new feature, enhancement, or deterministic function pack.
+        For bug reports, open an [issue](https://github.com/PrinceJonaa/nanosistant/issues/new/choose) instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What problem does this idea solve, or what opportunity does it create?
+      placeholder: "Currently, when I want to..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe what you have in mind. Be as specific as you can.
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Which tier would this affect?
+      options:
+        - NanoClaw (edge)
+        - RuFlo (brain / routing)
+        - RuVector (knowledge)
+        - Cross-tier
+        - CLI / REPL
+        - Pack system
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: deterministic
+    attributes:
+      label: Can this be implemented deterministically (zero tokens)?
+      description: Is this a pure function that produces the same output for the same input?
+      options:
+        - "Yes — pure function, no LLM needed"
+        - "Partially — some parts are deterministic"
+        - "No — LLM inference required"
+        - "Not sure"
+    validations:
+      required: true
+  - type: checkboxes
+    id: pack
+    attributes:
+      label: Pack proposal?
+      description: Should this ship as an nstn-pack rather than a core module?
+      options:
+        - label: Yes, this is a pack proposal (domain-specific, optional install)
+  - type: dropdown
+    id: module
+    attributes:
+      label: Relevant deterministic module (if applicable)
+      options:
+        - logic
+        - graph
+        - information
+        - probability
+        - music
+        - finance
+        - data
+        - time
+        - text
+        - code
+        - geo
+        - physics
+        - health
+        - social
+        - new module needed
+        - not applicable
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider?
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else — links, prior art, related issues, sketches.

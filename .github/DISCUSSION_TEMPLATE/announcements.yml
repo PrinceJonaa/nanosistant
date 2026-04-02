@@ -1,0 +1,51 @@
+title: "[Announcement] "
+labels:
+  - announcement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Release Announcement
+        Use this template to announce new releases, major milestones, or important project updates.
+  - type: input
+    id: version
+    attributes:
+      label: Version / Tag
+      description: Which version or tag does this announcement cover?
+      placeholder: "e.g. v0.8.0"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What's new
+      description: High-level summary of changes in this release.
+      placeholder: |
+        Key highlights:
+        - 
+        - 
+        - 
+    validations:
+      required: true
+  - type: textarea
+    id: breaking
+    attributes:
+      label: Breaking changes
+      description: List any breaking changes contributors or users need to act on. Leave blank if none.
+      placeholder: "None."
+  - type: textarea
+    id: upgrade
+    attributes:
+      label: Upgrade instructions
+      description: Steps required to upgrade from the previous version, if any.
+      placeholder: |
+        ```bash
+        git pull --recurse-submodules
+        cargo build --workspace
+        ```
+  - type: input
+    id: changelog
+    attributes:
+      label: Full changelog link
+      description: Link to the relevant section of CHANGELOG.md or the GitHub release page.
+      placeholder: "https://github.com/PrinceJonaa/nanosistant/releases/tag/v0.8.0"

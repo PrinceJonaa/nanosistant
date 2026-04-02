@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a question / discuss
+    url: https://github.com/PrinceJonaa/nanosistant/discussions
+    about: Use Discussions for questions, ideas, and general conversation
+  - name: 🌐 NSTN Hub — browse packs
+    url: https://www.perplexity.ai/computer/a/nstn-hub-Z1X8W_6UR.aaR2MVFuRbYw
+    about: Browse and install deterministic function packs
