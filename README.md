@@ -1,16 +1,32 @@
 # Nanosistant
 
-[![CI](https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml/badge.svg)](https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.7.0-teal)](https://github.com/PrinceJonaa/nanosistant/releases)
-[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange)](https://rustup.rs)
-[![Tests](https://img.shields.io/badge/tests-840%20passing-green)](https://github.com/PrinceJonaa/nanosistant/actions)
-[![License](https://img.shields.io/badge/license-proprietary-blue)](LICENSE)
+<p align="center">
+  <img src="docs/assets/banner.png" alt="Nanosistant" width="100%" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml"><img src="https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://github.com/PrinceJonaa/nanosistant/releases"><img src="https://img.shields.io/badge/version-0.7.0-teal" alt="Version"/></a>
+  <a href="https://rustup.rs"><img src="https://img.shields.io/badge/rust-1.75%2B-orange" alt="Rust"/></a>
+  <a href="https://github.com/PrinceJonaa/nanosistant/actions"><img src="https://img.shields.io/badge/tests-840%20passing-green" alt="Tests"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-blue" alt="License"/></a>
+</p>
 
 Most AI systems reach for a language model first. Nanosistant reaches for one last.
 
 It's a personal AI runtime built in Rust — three tiers, eight routing layers, 316 deterministic functions, and a typed memory system. Before any token gets spent, your query passes through a confidence ladder of pure math: Aho-Corasick, regex, fuzzy matching, domain scoring. The LLM only fires when every deterministic path has genuinely failed to answer. The orchestrator is always code. It never hands control to a prompt.
 
 → **[NSTN Hub](https://princejonaa.github.io/nanosistant/)** — browse and install community packs
+
+---
+
+## Demo
+
+<p align="center">
+  <img src="docs/assets/demo.svg" alt="Nanosistant terminal demo" width="100%" />
+</p>
+
+> The animated demo above shows the confidence ladder routing a real query through deterministic tiers before the LLM is ever considered. [Watch the full video →](docs/assets/demo.mp4)
 
 ---
 
@@ -72,6 +88,22 @@ User (iOS · CLI · HTTP)
 | **Edge** — NanoClaw | `nstn-nanoclaw` | Local resolution, offline queue, sync-on-connect, iOS client |
 | **Brain** — RuFlo | `nstn-ruflo` | Router, memory, budget, watchdog, dreamer, typed-IR |
 | **Knowledge** — RuVector | `nstn-ruvector` | Vector store, embeddings, document ingestion, domain RAG |
+
+---
+
+## NSTN Hub
+
+The community registry for deterministic function packs. Browse, install, and contribute.
+
+<p align="center">
+  <img src="docs/assets/hub-home.png" alt="NSTN Hub home" width="49%" />
+  <img src="docs/assets/hub-browse.png" alt="NSTN Hub browse" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/assets/showcase.png" alt="NSTN Hub showcase" width="100%" />
+</p>
+
+→ **[princejonaa.github.io/nanosistant](https://princejonaa.github.io/nanosistant/)**
 
 ---
 
