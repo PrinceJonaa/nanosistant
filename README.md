@@ -100,7 +100,8 @@ The community registry for deterministic function packs. Browse, install, and co
   <img src="docs/assets/hub-browse.png" alt="NSTN Hub browse" width="49%" />
 </p>
 <p align="center">
-  <img src="docs/assets/showcase.png" alt="NSTN Hub showcase" width="100%" />
+  <img src="docs/assets/hub-detail.png" alt="NSTN Hub pack detail" width="49%" />
+  <img src="docs/assets/showcase.png" alt="NSTN Hub showcase" width="49%" />
 </p>
 
 → **[princejonaa.github.io/nanosistant](https://princejonaa.github.io/nanosistant/)**
