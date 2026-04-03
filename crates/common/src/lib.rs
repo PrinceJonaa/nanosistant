@@ -1,17 +1,11 @@
 // Legacy unified module (kept for backward compat)
 pub mod deterministic;
 
-// New structured det/ module system (v0.7)
+// Structured deterministic module system (v0.7+)
+// Use det::universal::{logic, graph, information, probability}
+// Use det::domain::{music, finance, data, time, text, code, geo, physics, health, social}
 pub mod det;
 
-// Domain deterministic modules — re-export shims for backward compat
-pub mod det_music;
-pub mod det_finance;
-pub mod det_data;
-pub mod det_time;
-pub mod det_text;
-pub mod det_code;
-pub mod det_geo;
 pub mod function_proposal;
 
 pub mod domain;

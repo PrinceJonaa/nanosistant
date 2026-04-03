@@ -1,0 +1,127 @@
+# nstn-music — TOML routing rules
+#
+# This file defines declarative routing rules for the TOML rule evaluator.
+# Rules are matched in order. The first rule whose `match` block fully
+# satisfies the query wins and the specified `function` is called.
+#
+# Format:
+#   [[rule]]
+#   name        = "human-readable label for logs/debug"
+#   function    = "function_name_in_the_rust_module"
+#   priority    = 0–100  (higher = matched earlier)
+#   zero_token  = true   (always true for deterministic rules)
+#
+#   [rule.match]
+#   keywords    = ["at least one must appear in the query"]
+#   all_of      = ["every one of these must appear"]   (optional)
+#   none_of     = ["query must NOT contain these"]     (optional)
+#   pattern     = "optional regex applied after keyword check"
+#
+# Tips:
+# - Use `keywords` for broad domain capture, `all_of` to tighten.
+# - `none_of` prevents false positives (e.g. "time" matching a music query
+#   that also mentions "time signature" — add "time signature" to keywords
+#   instead and put bare "time" in none_of if needed).
+# - Priority 90+ is reserved for highly specific closed-form queries.
+# - Leave `pattern` empty unless regex precision is genuinely needed.
+
+[[rule]]
+name       = "bpm-to-bar-duration"
+function   = "bpm_to_bar_duration"
+priority   = 95
+zero_token = true
+
+  [rule.match]
+  keywords = ["bpm", "bar duration", "bar length", "how long is a bar"]
+  none_of  = ["convert", "to hz", "frequency"]
+
+[[rule]]
+name       = "delay-times"
+function   = "delay_times"
+priority   = 95
+zero_token = true
+
+  [rule.match]
+  keywords = ["delay time", "delay ms", "eighth note delay", "dotted eighth", "delay at"]
+  all_of   = ["bpm"]
+
+[[rule]]
+name       = "scale-degrees"
+function   = "scale_degrees"
+priority   = 90
+zero_token = true
+
+  [rule.match]
+  keywords = ["scale", "mode", "dorian", "phrygian", "lydian", "mixolydian", "blues scale", "pentatonic", "locrian", "aeolian"]
+  none_of  = ["chord"]
+
+[[rule]]
+name       = "chord-to-roman"
+function   = "chord_to_roman"
+priority   = 90
+zero_token = true
+
+  [rule.match]
+  keywords = ["roman numeral", "chord function", "what chord is", "in the key of"]
+  all_of   = ["chord"]
+
+[[rule]]
+name       = "note-to-frequency"
+function   = "note_to_frequency"
+priority   = 88
+zero_token = true
+
+  [rule.match]
+  keywords = ["frequency", "hz", "hertz", "pitch frequency"]
+  all_of   = ["note"]
+  none_of  = ["sample rate", "audio interface"]
+
+[[rule]]
+name       = "tempo-feel"
+function   = "tempo_feel"
+priority   = 80
+zero_token = true
+
+  [rule.match]
+  keywords = ["tempo", "tempo marking", "allegro", "andante", "presto", "what tempo", "how fast is"]
+  pattern  = "\\d+\\s*bpm"
+
+[[rule]]
+name       = "bpm-to-ms"
+function   = "bpm_to_ms"
+priority   = 85
+zero_token = true
+
+  [rule.match]
+  keywords = ["milliseconds", "ms per beat", "beat in ms", "quarter note ms"]
+  all_of   = ["bpm"]
+
+[[rule]]
+name       = "transpose"
+function   = "transpose"
+priority   = 85
+zero_token = true
+
+  [rule.match]
+  keywords = ["transpose", "transposition", "move up", "move down", "half step", "semitone", "whole step"]
+  all_of   = ["note"]
+
+[[rule]]
+name       = "interval-name"
+function   = "interval_name"
+priority   = 80
+zero_token = true
+
+  [rule.match]
+  keywords = ["interval", "minor third", "major third", "perfect fifth", "tritone", "major second", "minor seventh"]
+  none_of  = ["chord", "scale"]
+
+[[rule]]
+name       = "song-bar-count"
+function   = "song_bar_count"
+priority   = 75
+zero_token = true
+
+  [rule.match]
+  keywords = ["how many bars", "bar count", "bars in", "length in bars"]
+  all_of   = ["bpm"]
