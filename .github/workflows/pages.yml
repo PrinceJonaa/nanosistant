@@ -12,15 +12,42 @@ permissions:
 
 jobs:
   deploy:
+    name: Deploy hub/ to gh-pages
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy hub/ to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./hub
-          publish_branch: gh-pages
-          exclude_assets: '.github'
-          commit_message: 'deploy: update NSTN Hub'
+          fetch-depth: 0
+
+      - name: Extract hub files and push to gh-pages
+        run: |
+          # Capture current hub files
+          cp -r hub/ /tmp/hub-deploy
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Switch to gh-pages, reset to remote
+          git fetch origin gh-pages
+          git checkout gh-pages
+          git reset --hard origin/gh-pages
+
+          # Copy hub files to root of gh-pages
+          cp -f /tmp/hub-deploy/index.html ./index.html
+          cp -f /tmp/hub-deploy/app.js     ./app.js
+          cp -f /tmp/hub-deploy/auth.js    ./auth.js
+          cp -f /tmp/hub-deploy/style.css  ./style.css
+          cp -f /tmp/hub-deploy/base.css   ./base.css
+          cp -f /tmp/hub-deploy/404.html   ./404.html
+
+          # Stage and commit if anything changed
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "deploy: update NSTN Hub [skip ci]"
+            git push origin gh-pages
+            echo "Deployed successfully"
+          fi

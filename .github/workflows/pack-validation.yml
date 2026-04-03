@@ -1,0 +1,145 @@
+name: Pack Validation
+
+on:
+  pull_request:
+    paths:
+      - 'packs/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Validate pack.toml
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toml-cli
+        run: pip install toml-cli 2>/dev/null || pip3 install toml 2>/dev/null; cargo install toml-validator --quiet 2>/dev/null || true
+
+      - name: Find changed packs
+        id: changed
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'packs/**' | grep 'pack.toml' || true)
+          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Changed pack.toml files:"
+          echo "$CHANGED"
+
+      - name: Validate each pack.toml
+        run: |
+          set -e
+          ERRORS=0
+
+          validate_pack() {
+            local TOML="$1"
+            local PACK_DIR=$(dirname "$TOML")
+            echo "--- Validating $TOML ---"
+
+            # Required fields
+            for FIELD in name version author tier domain description; do
+              VALUE=$(python3 -c "
+          import sys
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+          with open('$TOML', 'rb') as f:
+              d = tomllib.load(f)
+          print(d.get('pack', {}).get('$FIELD', ''))
+          " 2>/dev/null || echo "")
+              if [ -z "$VALUE" ]; then
+                echo "  ✗ Missing required field: pack.$FIELD"
+                ERRORS=$((ERRORS + 1))
+              else
+                echo "  ✓ pack.$FIELD = $VALUE"
+              fi
+            done
+
+            # tier must be Universal, Domain, or Operator
+            TIER=$(python3 -c "
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+          with open('$TOML', 'rb') as f:
+              d = tomllib.load(f)
+          print(d.get('pack', {}).get('tier', ''))
+          " 2>/dev/null || echo "")
+            if [[ "$TIER" != "Universal" && "$TIER" != "Domain" && "$TIER" != "Operator" ]]; then
+              echo "  ✗ pack.tier must be Universal, Domain, or Operator (got: $TIER)"
+              ERRORS=$((ERRORS + 1))
+            fi
+
+            # tags must be non-empty array
+            TAGS=$(python3 -c "
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+          with open('$TOML', 'rb') as f:
+              d = tomllib.load(f)
+          t = d.get('pack', {}).get('tags', [])
+          print(len(t))
+          " 2>/dev/null || echo "0")
+            if [ "$TAGS" -eq 0 ]; then
+              echo "  ✗ pack.tags must be a non-empty array"
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "  ✓ pack.tags ($TAGS tags)"
+            fi
+
+            # routing section
+            HAS_ROUTING=$(python3 -c "
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+          with open('$TOML', 'rb') as f:
+              d = tomllib.load(f)
+          print('yes' if 'routing' in d.get('pack', {}) else 'no')
+          " 2>/dev/null || echo "no")
+            if [ "$HAS_ROUTING" = "yes" ]; then
+              echo "  ✓ pack.routing present"
+            else
+              echo "  ⚠ pack.routing missing (recommended)"
+            fi
+
+            echo ""
+          }
+
+          # Validate all changed pack.toml files
+          for TOML in $(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'packs/**' | grep 'pack.toml'); do
+            validate_pack "$TOML"
+          done
+
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "✗ Validation failed with $ERRORS error(s)"
+            exit 1
+          else
+            echo "✓ All packs valid"
+          fi
+
+      - name: Install tomli fallback
+        if: failure()
+        run: pip install tomli && echo "Retry with tomli installed"
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ job.status }}';
+            const icon = conclusion === 'success' ? '✅' : '❌';
+            const msg = conclusion === 'success'
+              ? '**Pack validation passed.** All `pack.toml` files are valid.'
+              : '**Pack validation failed.** Check the workflow logs for field errors.';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${icon} ${msg}\n\nSee [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}) for details.`
+            });
