@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSTN Hub — Deterministic Function Registry</title>
+  <meta name="description" content="The registry for verified, zero-token deterministic function packs. Install tested, pure math/logic functions for Nanosistant.">
+  <meta property="og:title" content="NSTN Hub — Deterministic Function Registry">
+  <meta property="og:description" content="Install verified, zero-token function packs. Every function tested, every result deterministic.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0e17'/><path d='M8 22V10l8 12V10' stroke='%2300c8c8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='24' cy='10' r='2' fill='%23b478ff'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./base.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- HEADER                                       -->
+  <!-- ============================================ -->
+  <header class="site-header">
+    <nav class="container nav-inner">
+      <a href="#/" class="nav-logo" aria-label="NSTN Hub Home">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#111827" stroke="#00c8c8" stroke-width="1"/>
+          <path d="M8 22V10l8 12V10" stroke="#00c8c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24" cy="10" r="2" fill="#b478ff"/>
+          <circle cx="24" cy="16" r="1.2" fill="#b478ff" opacity="0.6"/>
+          <circle cx="24" cy="21" r="0.8" fill="#b478ff" opacity="0.3"/>
+        </svg>
+        <span><span class="logo-nstn">NSTN</span> Hub</span>
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#/" data-nav="home">Home</a></li>
+        <li><a href="#/packs" data-nav="packs">Browse Packs</a></li>
+        <li><a href="#/docs" data-nav="docs">Contribute</a></li>
+        <li><a href="#/submit" data-nav="submit" class="nav-submit-link">Submit Pack</a></li>
+        <li><a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer" class="nav-cta">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a></li>
+      </ul>
+      <!-- Auth area -->
+      <div class="nav-auth" id="nav-auth">
+        <!-- JS fills: avatar or sign-in button -->
+      </div>
+
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============================================ -->
+    <!-- PAGE: HOME                                   -->
+    <!-- ============================================ -->
+    <div class="page active" id="page-home">
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-grid-bg" aria-hidden="true"></div>
+        <div class="container">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="dot"></span>
+              Deterministic · Verified · Zero-Token
+            </div>
+            <h1>The deterministic<br>function <span class="accent">registry</span></h1>
+            <p class="subtitle">
+              Install verified, tested function packs. Pure math and logic — no LLM calls, no tokens burned, no hallucinations. Every function has a test proving it works.
+            </p>
+            <div class="hero-install">
+              <div class="install-box">
+                <span class="prompt">$</span>
+                <code>nanosistant install music-theory-core</code>
+                <button class="copy-btn" data-copy="nanosistant install music-theory-core" aria-label="Copy install command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </button>
+              </div>
+              <a href="#/packs" class="hero-link">
+                Browse all packs
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Bar -->
+      <section class="stats-bar">
+        <div class="container">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value"><span class="teal">16</span></div>
+              <div class="stat-label">Function Packs</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value"><span class="purple">211</span></div>
+              <div class="stat-label">Total Functions</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value"><span class="green">100%</span></div>
+              <div class="stat-label">Avg Test Coverage</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value"><span class="teal">0</span></div>
+              <div class="stat-label">Tokens Required</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value"><span class="green">840</span></div>
+              <div class="stat-label">Tests Passing</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Featured Packs -->
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Featured Packs</h2>
+            <a href="#/packs" class="section-link">
+              View all
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+          <div class="featured-grid" id="featured-grid">
+            <!-- JS fills -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories -->
+      <section class="section" style="padding-top:0">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Browse by Category</h2>
+          </div>
+          <div class="category-grid" id="category-grid">
+            <!-- JS fills -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Trending -->
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Trending This Week</h2>
+          </div>
+          <div class="trending-list" id="trending-list">
+            <!-- JS fills -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Install CTA -->
+      <section class="section">
+        <div class="container">
+          <div class="pr-cta">
+            <h2>Get started in one command</h2>
+            <p>Install any pack directly from your terminal. Zero configuration, instant access to verified functions.</p>
+            <div class="install-box" style="display:inline-flex; margin-bottom:var(--space-4)">
+              <span class="prompt">$</span>
+              <code>nanosistant install &lt;pack-name&gt;</code>
+            </div>
+            <br>
+            <a href="#/submit" class="btn-secondary" style="margin-top:var(--space-4)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Contribute a Pack
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE: BROWSE PACKS                           -->
+    <!-- ============================================ -->
+    <div class="page" id="page-packs">
+      <section class="section">
+        <div class="container">
+          <h1 class="section-title" style="font-size:var(--text-2xl); margin-bottom:var(--space-2)">Browse Packs</h1>
+          <p class="text-muted" style="margin-bottom:var(--space-8)">Discover verified, deterministic function packs for Nanosistant.</p>
+          <div class="browse-layout">
+            <aside class="filter-sidebar" id="filter-sidebar">
+              <div class="filter-group">
+                <h3>Tier</h3>
+                <label class="filter-option active" data-filter="tier" data-value="all">
+                  <input type="radio" name="tier" checked> All
+                </label>
+                <label class="filter-option" data-filter="tier" data-value="Universal">
+                  <input type="radio" name="tier"> Universal
+                </label>
+                <label class="filter-option" data-filter="tier" data-value="Domain">
+                  <input type="radio" name="tier"> Domain
+                </label>
+                <label class="filter-option" data-filter="tier" data-value="Operator">
+                  <input type="radio" name="tier"> Operator
+                </label>
+              </div>
+              <div class="filter-group">
+                <h3>Domain</h3>
+                <div id="domain-filters">
+                  <!-- JS fills -->
+                </div>
+              </div>
+              <div class="filter-group">
+                <h3>Status</h3>
+                <label class="filter-option" data-filter="verified" data-value="true">
+                  <input type="checkbox" id="verified-only"> Verified only
+                </label>
+              </div>
+            </aside>
+            <div>
+              <div class="sort-bar">
+                <div class="sort-tabs">
+                  <button class="sort-tab active" data-sort="trending">Trending</button>
+                  <button class="sort-tab" data-sort="newest">Newest</button>
+                  <button class="sort-tab" data-sort="tests">Most Tests</button>
+                  <button class="sort-tab" data-sort="used">Most Used</button>
+                </div>
+                <span class="result-count" id="result-count"></span>
+              </div>
+              <div class="pack-grid" id="browse-grid">
+                <!-- JS fills -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE: PACK DETAIL                            -->
+    <!-- ============================================ -->
+    <div class="page" id="page-detail">
+      <div class="container">
+        <div class="detail-header" id="detail-header">
+          <!-- JS fills -->
+        </div>
+        <div class="detail-body" id="detail-body">
+          <!-- JS fills -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE: CONTRIBUTE DOCS                        -->
+    <!-- ============================================ -->
+    <div class="page" id="page-docs">
+      <div class="container">
+        <div class="contribute-hero">
+          <h1>Contribute a <span class="text-teal">Function Pack</span></h1>
+          <p>Ship verified, deterministic functions to the community. Three steps, one PR — your logic, tested and shared.</p>
+        </div>
+
+        <!-- 3 Steps -->
+        <div class="steps-grid">
+          <div class="step-card animate-in">
+            <div class="step-number">1</div>
+            <h3>Define your pack</h3>
+            <p>Create a <code class="text-mono text-teal">pack.toml</code> manifest describing your pack, its functions, and metadata.</p>
+            <div class="code-block"><span class="section-header">[pack]</span>
+<span class="key">name</span> = <span class="string">"my-awesome-pack"</span>
+<span class="key">version</span> = <span class="string">"0.1.0"</span>
+<span class="key">author</span> = <span class="string">"your-name"</span>
+<span class="key">tier</span> = <span class="string">"Domain"</span>
+<span class="key">domain</span> = <span class="string">"music"</span>
+<span class="key">description</span> = <span class="string">"Short description"</span></div>
+          </div>
+
+          <div class="step-card animate-in">
+            <div class="step-number">2</div>
+            <h3>Write your functions</h3>
+            <p>Implement deterministic functions in TOML rules (low friction) or Rust (power users). No LLM calls — pure logic.</p>
+            <div class="code-block"><span class="line-comment"># rules.toml — the easy path</span>
+<span class="section-header">[[rule]]</span>
+<span class="key">name</span> = <span class="string">"bpm_to_ms"</span>
+<span class="key">input</span> = <span class="string">"bpm: f64"</span>
+<span class="key">output</span> = <span class="string">"f64"</span>
+<span class="key">formula</span> = <span class="string">"60000.0 / bpm"</span>
+<span class="key">description</span> = <span class="string">"Convert BPM to ms"</span></div>
+          </div>
+
+          <div class="step-card animate-in">
+            <div class="step-number">3</div>
+            <h3>Test &amp; submit</h3>
+            <p>Every function needs a test proving it works. Run the test suite, then open a PR to the packs repo.</p>
+            <div class="code-block"><span class="line-comment"># Run tests</span>
+<span class="key">$</span> nanosistant test my-awesome-pack
+<span class="string">✓ bpm_to_ms(120) == 500.0</span>
+<span class="string">✓ bpm_to_ms(140) == 428.571...</span>
+<span class="string">✓ All 2 tests passing</span>
+
+<span class="line-comment"># Submit via PR</span>
+<span class="key">$</span> git push origin my-awesome-pack</div>
+          </div>
+        </div>
+
+        <!-- Pack.toml Format -->
+        <div class="format-section">
+          <h2>pack.toml format</h2>
+          <p>The manifest file that describes your pack to the registry.</p>
+          <div class="code-block-header">
+            <span>pack.toml</span>
+            <button class="copy-btn" data-copy-block="pack-toml" aria-label="Copy pack.toml example">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div class="code-block" id="pack-toml"><span class="section-header">[pack]</span>
+<span class="key">name</span> = <span class="string">"music-theory-core"</span>
+<span class="key">version</span> = <span class="string">"0.6.0"</span>
+<span class="key">author</span> = <span class="string">"nanosistant"</span>
+<span class="key">tier</span> = <span class="string">"Domain"</span>           <span class="line-comment"># Universal | Domain | Operator</span>
+<span class="key">domain</span> = <span class="string">"music"</span>
+<span class="key">description</span> = <span class="string">"Scale degrees, chord-to-roman, BPM math..."</span>
+<span class="key">tags</span> = [<span class="string">"music"</span>, <span class="string">"theory"</span>, <span class="string">"production"</span>]
+
+<span class="section-header">[compatibility]</span>
+<span class="key">nanosistant_min</span> = <span class="string">"0.6.0"</span>
+
+<span class="section-header">[routing]</span>
+<span class="key">keywords</span> = [<span class="string">"scale"</span>, <span class="string">"chord"</span>, <span class="string">"bpm"</span>, <span class="string">"tempo"</span>]
+<span class="key">semantic</span> = <span class="string">"Music theory calculations and analysis"</span></div>
+        </div>
+
+        <!-- rules.toml Format -->
+        <div class="format-section">
+          <h2>rules.toml format</h2>
+          <p>The low-friction path — define functions as TOML rules. No Rust knowledge needed.</p>
+          <div class="code-block-header">
+            <span>rules.toml</span>
+            <button class="copy-btn" data-copy-block="rules-toml" aria-label="Copy rules.toml example">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div class="code-block" id="rules-toml"><span class="section-header">[[rule]]</span>
+<span class="key">name</span> = <span class="string">"bpm_to_ms"</span>
+<span class="key">input</span> = <span class="string">"bpm: f64"</span>
+<span class="key">output</span> = <span class="string">"f64"</span>
+<span class="key">formula</span> = <span class="string">"60000.0 / bpm"</span>
+<span class="key">description</span> = <span class="string">"Convert BPM to milliseconds per beat"</span>
+
+<span class="section-header">[[rule]]</span>
+<span class="key">name</span> = <span class="string">"delay_time"</span>
+<span class="key">input</span> = <span class="string">"bpm: f64, subdivision: &str"</span>
+<span class="key">output</span> = <span class="string">"f64"</span>
+<span class="key">formula</span> = <span class="string">"match subdivision { \"1/4\" => 60000.0/bpm, \"1/8\" => 30000.0/bpm, _ => 0.0 }"</span>
+<span class="key">description</span> = <span class="string">"Calculate delay time for a given BPM and note subdivision"</span>
+
+<span class="section-header">[[test]]</span>
+<span class="key">function</span> = <span class="string">"bpm_to_ms"</span>
+<span class="key">input</span> = <span class="string">"120.0"</span>
+<span class="key">expected</span> = <span class="string">"500.0"</span></div>
+        </div>
+
+        <!-- functions.rs Format -->
+        <div class="format-section">
+          <h2>functions.rs format</h2>
+          <p>For power users — write functions in Rust for maximum performance and type safety.</p>
+          <div class="code-block-header">
+            <span>functions.rs</span>
+            <button class="copy-btn" data-copy-block="functions-rs" aria-label="Copy functions.rs example">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div class="code-block" id="functions-rs"><span class="keyword">use</span> nanosistant_sdk::<span class="bracket">{</span>function, NstnResult<span class="bracket">}</span>;
+
+<span class="line-comment">/// Convert BPM to milliseconds per beat</span>
+<span class="keyword">#[function]</span>
+<span class="keyword">pub fn</span> <span class="key">bpm_to_ms</span><span class="bracket">(</span>bpm: <span class="type">f64</span><span class="bracket">)</span> -> <span class="type">NstnResult</span>&lt;<span class="type">f64</span>&gt; <span class="bracket">{</span>
+    <span class="keyword">if</span> bpm <= <span class="string">0.0</span> <span class="bracket">{</span>
+        <span class="keyword">return</span> Err<span class="bracket">(</span><span class="string">"BPM must be positive"</span>.into<span class="bracket">(</span><span class="bracket">)</span><span class="bracket">)</span>;
+    <span class="bracket">}</span>
+    Ok<span class="bracket">(</span><span class="string">60000.0</span> / bpm<span class="bracket">)</span>
+<span class="bracket">}</span>
+
+<span class="keyword">#[cfg(test)]</span>
+<span class="keyword">mod</span> tests <span class="bracket">{</span>
+    <span class="keyword">use super</span>::*;
+
+    <span class="keyword">#[test]</span>
+    <span class="keyword">fn</span> <span class="key">test_bpm_to_ms</span><span class="bracket">(</span><span class="bracket">)</span> <span class="bracket">{</span>
+        assert_eq!<span class="bracket">(</span>bpm_to_ms<span class="bracket">(</span><span class="string">120.0</span><span class="bracket">)</span>.unwrap<span class="bracket">(</span><span class="bracket">)</span>, <span class="string">500.0</span><span class="bracket">)</span>;
+        assert_eq!<span class="bracket">(</span>bpm_to_ms<span class="bracket">(</span><span class="string">140.0</span><span class="bracket">)</span>.unwrap<span class="bracket">(</span><span class="bracket">)</span>, <span class="string">428.571428571</span><span class="bracket">)</span>;
+    <span class="bracket">}</span>
+<span class="bracket">}</span></div>
+        </div>
+
+        <!-- Test Requirements -->
+        <div class="format-section">
+          <h2>Test Requirements</h2>
+          <p>Every function pack must include tests. No exceptions — this is the trust signal that separates NSTN Hub from prompt marketplaces.</p>
+          <ul class="requirement-list">
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Every exported function must have at least one test
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Tests must use concrete expected values — no fuzzy matching
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Edge cases: zero, negative, empty, and boundary inputs
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              CI runs all tests on every PR — failures block merge
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Target 100% test coverage for maximum quality score
+            </li>
+          </ul>
+        </div>
+
+        <!-- GitHub PR CTA -->
+        <div class="pr-cta" style="margin-bottom:var(--space-16)">
+          <h2>Ready to contribute?</h2>
+          <p>Use the visual form builder to create and submit your pack — no git commands needed.</p>
+          <a href="#/submit" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Open Pack Builder
+          </a>
+          <a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="margin-left:var(--space-3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PAGE: SUBMIT FORM BUILDER                    -->
+    <!-- ============================================ -->
+    <div class="page" id="page-submit">
+      <div class="container">
+
+        <!-- Page Header -->
+        <div class="submit-page-header">
+          <div>
+            <h1>Pack <span class="text-teal">Builder</span></h1>
+            <p>Fill in the form — we generate the TOML, validate it, and open the PR for you.</p>
+          </div>
+          <!-- Auth status -->
+          <div class="submit-auth-status" id="submit-auth-status">
+            <!-- JS fills -->
+          </div>
+        </div>
+
+        <!-- Main form layout -->
+        <div class="submit-layout">
+
+          <!-- ── LEFT COLUMN: Form ──────────────────────────────────────── -->
+          <div class="submit-form-col">
+
+            <!-- ── Section: Pack Metadata ──────────────────────────────── -->
+            <section class="form-section">
+              <h2 class="form-section-title">Pack Metadata</h2>
+
+              <div class="form-field">
+                <label class="form-label" for="f-name">Pack Name <span class="required">*</span></label>
+                <input class="form-input" id="f-name" type="text" placeholder="my-awesome-pack"
+                  pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]" autocomplete="off"
+                  title="Lowercase letters, numbers, and hyphens only. No spaces.">
+                <div class="form-hint">Lowercase, hyphens only — e.g. <code>music-utils</code></div>
+                <div class="form-field-error" id="f-name-err"></div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label" for="f-description">Description <span class="required">*</span></label>
+                <textarea class="form-input form-textarea" id="f-description" rows="3"
+                  placeholder="What does this pack do? Be specific about the functions it contains."></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label" for="f-domain">Domain <span class="required">*</span></label>
+                  <select class="form-input form-select" id="f-domain">
+                    <option value="">Select domain…</option>
+                    <option value="music">Music</option>
+                    <option value="finance">Finance</option>
+                    <option value="data">Data</option>
+                    <option value="time">Time</option>
+                    <option value="text">Text</option>
+                    <option value="code">Code</option>
+                    <option value="geo">Geo</option>
+                    <option value="physics">Physics</option>
+                    <option value="health">Health</option>
+                    <option value="social">Social</option>
+                    <option value="universal">Universal</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label class="form-label" for="f-version">Version</label>
+                  <input class="form-input" id="f-version" type="text" value="0.1.0" placeholder="0.1.0">
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label">Tier <span class="required">*</span></label>
+                <div class="radio-group">
+                  <label class="radio-option" id="tier-universal">
+                    <input type="radio" name="tier" value="Universal" id="tier-r-universal">
+                    <span class="radio-label">
+                      <span class="radio-name">Universal</span>
+                      <span class="radio-desc">Math &amp; logic with no domain dependency</span>
+                    </span>
+                  </label>
+                  <label class="radio-option" id="tier-domain">
+                    <input type="radio" name="tier" value="Domain" id="tier-r-domain" checked>
+                    <span class="radio-label">
+                      <span class="radio-name">Domain</span>
+                      <span class="radio-desc">Domain-specific functions (music, finance, etc.)</span>
+                    </span>
+                  </label>
+                  <label class="radio-option" id="tier-operator">
+                    <input type="radio" name="tier" value="Operator" id="tier-r-operator">
+                    <span class="radio-label">
+                      <span class="radio-name">Operator</span>
+                      <span class="radio-desc">Custom community or niche-domain packs</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label" for="f-tags">Tags</label>
+                <input class="form-input" id="f-tags" type="text" placeholder="music, bpm, theory (comma-separated)">
+                <div class="tag-pills" id="tag-pills"></div>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label" for="f-author">Author</label>
+                <input class="form-input" id="f-author" type="text" placeholder="your-github-username"
+                  id="f-author" readonly>
+                <div class="form-hint">Auto-filled from your GitHub login</div>
+              </div>
+            </section>
+
+            <!-- ── Section: Functions ──────────────────────────────────── -->
+            <section class="form-section">
+              <h2 class="form-section-title">Functions</h2>
+
+              <div class="fn-type-tabs" role="tablist">
+                <button class="fn-tab active" data-tab="toml" role="tab" aria-selected="true">TOML Rules</button>
+                <button class="fn-tab" data-tab="rust" role="tab" aria-selected="false">Rust Code</button>
+              </div>
+
+              <!-- TOML Rules Tab -->
+              <div class="fn-tab-panel active" id="tab-toml">
+                <div class="rules-builder" id="rules-builder">
+                  <!-- JS-rendered rule cards go here -->
+                </div>
+                <button class="btn-add-rule" id="btn-add-rule" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Add another rule
+                </button>
+              </div>
+
+              <!-- Rust Code Tab -->
+              <div class="fn-tab-panel" id="tab-rust">
+                <div class="form-field">
+                  <label class="form-label" for="f-rust">functions.rs</label>
+                  <textarea class="form-input form-code-editor" id="f-rust" rows="20"
+                    spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+                    placeholder="use nanosistant_sdk::{function, NstnResult};
+
+/// Your function description
+#[function]
+pub fn my_function(input: f64) -> NstnResult&lt;f64&gt; {
+    if input &lt;= 0.0 {
+        return Err(\"Input must be positive\".into());
+    }
+    Ok(input * 2.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_my_function() {
+        assert_eq!(my_function(5.0).unwrap(), 10.0);
+    }
+}"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <!-- ── Section: README (optional) ──────────────────────────── -->
+            <section class="form-section">
+              <h2 class="form-section-title">README <span class="form-optional">(optional)</span></h2>
+              <div class="form-field">
+                <textarea class="form-input form-textarea" id="f-readme" rows="6"
+                  placeholder="# My Pack&#10;&#10;Brief overview of what this pack does and how to use it."></textarea>
+              </div>
+            </section>
+
+            <!-- ── Actions ─────────────────────────────────────────────── -->
+            <div class="submit-actions">
+              <button class="btn-validate" id="btn-validate" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Validate
+              </button>
+              <button class="btn-submit-pack" id="btn-submit-pack" type="button" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+                <span id="btn-submit-text">Sign in to submit</span>
+              </button>
+            </div>
+
+            <!-- Validation results -->
+            <div class="validation-results" id="validation-results" style="display:none"></div>
+
+            <!-- Submission result -->
+            <div class="submit-result" id="submit-result" style="display:none"></div>
+
+          </div><!-- end submit-form-col -->
+
+          <!-- ── RIGHT COLUMN: Live TOML Preview ───────────────────────── -->
+          <div class="submit-preview-col">
+            <div class="preview-sticky">
+              <div class="preview-header">
+                <span class="preview-title">Live Preview</span>
+                <div class="preview-tabs">
+                  <button class="preview-tab active" data-preview="pack">pack.toml</button>
+                  <button class="preview-tab" data-preview="rules">rules.toml</button>
+                </div>
+              </div>
+              <div class="preview-panel active" id="preview-pack">
+                <pre class="preview-code" id="preview-pack-code"><span class="text-muted"># Fill in the form to generate pack.toml</span></pre>
+              </div>
+              <div class="preview-panel" id="preview-rules">
+                <pre class="preview-code" id="preview-rules-code"><span class="text-muted"># Add TOML rules to see rules.toml preview</span></pre>
+              </div>
+              <div class="preview-copy-row">
+                <button class="preview-copy-btn" id="preview-copy-btn" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end submit-layout -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================ -->
+  <!-- FOOTER                                       -->
+  <!-- ============================================ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#/" class="nav-logo">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect width="32" height="32" rx="6" fill="#111827" stroke="#00c8c8" stroke-width="1"/>
+              <path d="M8 22V10l8 12V10" stroke="#00c8c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="24" cy="10" r="2" fill="#b478ff"/>
+            </svg>
+            <span><span class="logo-nstn">NSTN</span> Hub</span>
+          </a>
+          <p>The deterministic function registry for Nanosistant. Verified, tested, zero-token function packs.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Registry</h4>
+          <ul>
+            <li><a href="#/packs">Browse Packs</a></li>
+            <li><a href="#/packs?domain=music">Music</a></li>
+            <li><a href="#/packs?domain=finance">Finance</a></li>
+            <li><a href="#/packs?domain=data">Data</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="#/submit">Contribute</a></li>
+            <li><a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href="#/submit">Documentation</a></li>
+            <li><a href="#/submit">Pack Format</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Project</h4>
+          <ul>
+            <li><a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer">About</a></li>
+            <li><a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer">Changelog</a></li>
+            <li><a href="https://github.com/PrinceJonaa/nanosistant" target="_blank" rel="noopener noreferrer">License</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Nanosistant. All functions deterministic.</span>
+        <span>Built with pure logic, zero tokens.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./app.js" defer></script>
+  <script src="./auth.js" defer></script>
+</body>
+</html>
