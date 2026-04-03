@@ -1,0 +1,65 @@
+name: "📦 Pack Submission"
+description: Submit a new deterministic function pack
+title: "[PACK] "
+labels: ["pack-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Submit a Pack
+        
+        You can also submit packs via the [NSTN Hub](https://princejonaa.github.io/nstn-hub/) web interface.
+        
+  - type: input
+    id: pack_name
+    attributes:
+      label: Pack name
+      placeholder: "my-awesome-pack"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Tier
+      options:
+        - Universal
+        - Domain
+        - Operator
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      placeholder: "music / finance / custom"
+    validations:
+      required: true
+
+  - type: input
+    id: function_count
+    attributes:
+      label: Number of functions
+      placeholder: "12"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What does this pack do?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pack Checklist
+      options:
+        - label: "All functions are pure (no side effects, no I/O, no LLM calls)"
+          required: true
+        - label: "Every function has at least one test"
+          required: true
+        - label: "pack.toml includes all required fields"
+          required: true
+        - label: "rules.toml or functions.rs included"
+          required: true

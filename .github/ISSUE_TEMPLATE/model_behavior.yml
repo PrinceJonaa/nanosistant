@@ -1,0 +1,71 @@
+name: "🤖 Model Behavior Issue"
+description: Report unexpected LLM behavior, incorrect routing, or safety concerns
+title: "[MODEL] "
+labels: ["model-behavior"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Report Unexpected Model Behavior
+        
+        Use this when the LLM does something unexpected: wrong routing, bad tool calls, ignoring constraints, unsafe actions.
+        **NOT for:** crashes, build errors, or installation issues (use Bug Report).
+        
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight Checklist
+      options:
+        - label: This report does NOT contain sensitive information (API keys, passwords, personal data)
+          required: true
+        - label: I have searched existing issues for similar behavior
+          required: true
+
+  - type: dropdown
+    id: behavior_type
+    attributes:
+      label: Behavior Type
+      options:
+        - Wrong domain routing (message went to wrong agent)
+        - Confidence ladder bypassed (should have been deterministic)
+        - Tool called incorrectly or unnecessarily
+        - Safety boundary violated (sandbox, permissions)
+        - Watchdog should have triggered but didn't
+        - Dreamer produced incorrect lesson card
+        - God-Time check missed a drift signal
+        - Memory tier violation (LLM wrote to L1/L2/L3 directly)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: Describe the unexpected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model used
+      placeholder: "claude-sonnet-4-20250514 / gpt-5.4-mini / etc."
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      options:
+        - Anthropic
+        - Azure OpenAI
+        - OpenAI
+        - xAI
+        - Local (Ollama)

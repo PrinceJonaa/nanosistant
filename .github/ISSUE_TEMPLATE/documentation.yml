@@ -1,0 +1,36 @@
+name: "📚 Documentation Issue"
+description: Report missing, unclear, or incorrect documentation
+title: "[DOCS] "
+labels: ["documentation"]
+body:
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      options:
+        - Missing documentation
+        - Unclear or confusing
+        - Incorrect or outdated
+        - Missing code examples
+        - Broken links
+        - Pack documentation
+    validations:
+      required: true
+
+  - type: input
+    id: doc_url
+    attributes:
+      label: Documentation URL or file path
+      placeholder: "docs/architecture/routing.md or https://..."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to change?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement

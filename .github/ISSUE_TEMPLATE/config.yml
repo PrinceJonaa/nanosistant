@@ -1,8 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Ask a question / discuss
+  - name: "💬 Community Discussions"
     url: https://github.com/PrinceJonaa/nanosistant/discussions
-    about: Use Discussions for questions, ideas, and general conversation
-  - name: 🌐 NSTN Hub — browse packs
-    url: https://www.perplexity.ai/computer/a/nstn-hub-Z1X8W_6UR.aaR2MVFuRbYw
+    about: Questions, ideas, and general conversation
+  - name: "🌐 NSTN Hub"
+    url: https://princejonaa.github.io/nstn-hub/
     about: Browse and install deterministic function packs
+  - name: "📖 Documentation"
+    url: https://github.com/PrinceJonaa/nanosistant/tree/main/docs
+    about: Architecture docs, guides, and crate reference
+  - name: "🚀 Quick Start Guide"
+    url: https://github.com/PrinceJonaa/nanosistant/blob/main/docs/guides/quickstart.md
+    about: New to Nanosistant? Start here
