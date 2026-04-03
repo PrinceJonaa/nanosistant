@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-psychology"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal psychometrics: Likert scoring, Cronbach's alpha, behavioral streaks, cognitive load, attention decay, and Big Five personality scoring."
+nstn_version = ">=0.7.0"
+domain = "universal"
+tier = "Universal"
+tags = ["psychology", "psychometrics", "likert", "cronbach", "big-five", "cognitive-load", "attention", "behavior", "habit"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/psychology"
+repository = "https://github.com/PrinceJonaa/nanosistant"
+functions = 17
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "likert", "cronbach", "alpha", "psychometric", "z-score normalize",
+  "percentile rank", "streak", "habit score", "consistency",
+  "cognitive load", "working memory", "miller", "attention decay",
+  "big five", "ocean", "personality", "dominant trait"
+]
+semantic_description = "Psychometrics and behavioral science: Likert scoring, Cronbach alpha, cognitive load, attention decay, Big Five OCEAN scoring"
+confidence_threshold = 0.70

@@ -1,0 +1,23 @@
+[pack]
+name = "nstn-complexity"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal computational complexity: Big-O classification, state machine analysis, algorithm properties, and resource estimation."
+nstn_version = ">=0.7.0"
+domain = "universal"
+tier = "Universal"
+tags = ["complexity", "big-o", "state-machine", "algorithm", "fsm", "amdahl", "cache", "inversion"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/complexity"
+repository = "https://github.com/PrinceJonaa/nanosistant"
+functions = 16
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "big o", "complexity", "o(n)", "o(log n)", "state machine", "fsm",
+  "deterministic", "reachable states", "amdahl", "speedup",
+  "inversion count", "compression ratio", "cache line", "adjacency"
+]
+semantic_description = "Computational complexity: Big-O inference, state machine simulation, algorithm analysis, Amdahl speedup, resource estimation"
+confidence_threshold = 0.72

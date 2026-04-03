@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-integration"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal multi-domain integration: weighted aggregation, signal fusion, score combination, Borda count, RRF, cosine similarity, and softmax."
+nstn_version = ">=0.7.0"
+domain = "universal"
+tier = "Universal"
+tags = ["integration", "fusion", "weighted-mean", "softmax", "cosine", "jaccard", "borda", "rrf", "ensemble", "aggregation"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/integration"
+repository = "https://github.com/PrinceJonaa/nanosistant"
+functions = 19
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "weighted mean", "weighted sum", "softmax", "geometric mean",
+  "ensemble", "majority vote", "borda count", "reciprocal rank",
+  "harmonic mean", "normalize", "cosine similarity", "jaccard",
+  "euclidean distance", "sigmoid", "relu", "interpolate"
+]
+semantic_description = "Multi-domain signal fusion: weighted aggregation, ensemble voting, Borda count, RRF ranking, cosine/jaccard similarity, score normalization"
+confidence_threshold = 0.70

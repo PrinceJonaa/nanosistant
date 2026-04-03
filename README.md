@@ -8,7 +8,7 @@
   <a href="https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml"><img src="https://github.com/PrinceJonaa/nanosistant/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
   <a href="https://github.com/PrinceJonaa/nanosistant/releases"><img src="https://img.shields.io/badge/version-0.7.0-teal" alt="Version"/></a>
   <a href="https://rustup.rs"><img src="https://img.shields.io/badge/rust-1.75%2B-orange" alt="Rust"/></a>
-  <a href="https://github.com/PrinceJonaa/nanosistant/actions"><img src="https://img.shields.io/badge/tests-840%20passing-green" alt="Tests"/></a>
+  <a href="https://github.com/PrinceJonaa/nanosistant/actions"><img src="https://img.shields.io/badge/tests-940%20passing-green" alt="Tests"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-blue" alt="License"/></a>
 </p>
 
@@ -231,6 +231,10 @@ These packs cover math and reasoning primitives that apply across every domain.
 | `nstn-graph` | 14 | Shortest path, cycle detection, topological sort, spanning trees |
 | `nstn-information` | 10 | Shannon entropy, KL divergence, mutual information, channel capacity |
 | `nstn-probability` | 22 | Bayes theorem, distributions, combinatorics, expected value, hypothesis testing |
+| `nstn-language` | 18 | String analysis, edit distance, tokenization, n-grams, case conversion, slugify |
+| `nstn-complexity` | 16 | Big-O classification, state machine simulation, Amdahl speedup, resource estimation |
+| `nstn-psychology` | 17 | Likert scoring, Cronbach alpha, cognitive load, attention decay, Big Five OCEAN |
+| `nstn-integration` | 19 | Weighted aggregation, ensemble voting, Borda count, RRF, cosine/jaccard similarity |
 
 ### Domain
 
@@ -249,7 +253,7 @@ These packs handle calculations that belong to a specific field — the kind of 
 | `nstn-health` | 20 | BMI, BMR, target heart rate, VO2 max, calorie estimation, macros |
 | `nstn-social` | 16 | Engagement rates, influence scoring, centrality measures, network metrics |
 
-**316 functions · 100% test coverage across all 14 packs · $0.00 per call**
+**382 functions · 100% test coverage across all 18 packs · $0.00 per call**
 
 ---
 
@@ -302,7 +306,7 @@ The REPL ships 28 built-in commands:
 | `crates/typed-ir` | `nstn-typed-ir` | Typed intermediate representation — validates LLM proposals before execution |
 | `clients/ios` | `NanoClawKit` | Swift Package — iOS 17+ / macOS 14+ edge client |
 
-**14 Rust crates · 1 Swift package · 840 tests · 54,000+ lines**
+**14 Rust crates · 1 Swift package · 940 tests · 55,500+ lines**
 
 ---
 
@@ -353,7 +357,7 @@ If Node.js isn't available, the system falls back to the LLM at tier 8. ruflo is
 | v0.4 | ✓ | Full MCP client (6 transports), filesystem sandbox, 28 slash commands, OAuth PKCE, LSP |
 | v0.5 | ✓ | Live LLM API end-to-end, ruflo live routing, native gRPC in Swift, cross-device sync |
 | v0.6 | ✓ | L0–L3 typed memory, Dreamer consolidation loop, MAST watchdog, Typed-IR, 7 domain modules |
-| v0.7 | ✓ | All 14 packs, nstn-packs crate, operator TOML runtime, NSTN Hub, 840 tests |
+| v0.7 | ✓ | All 14 packs, nstn-packs crate, operator TOML runtime, NSTN Hub, 940 tests |
 | v0.8 | next | Public pack registry API, multi-operator federation, WASM pack sandbox |
 
 ---

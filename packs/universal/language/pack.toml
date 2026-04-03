@@ -1,0 +1,24 @@
+[pack]
+name = "nstn-language"
+version = "0.7.0"
+author = "Nanosistant Team"
+description = "Universal language primitives: string analysis, pattern matching, edit distance, tokenization, formal grammar, and symbol encoding."
+nstn_version = ">=0.7.0"
+domain = "universal"
+tier = "Universal"
+tags = ["language", "string", "tokenize", "edit-distance", "grammar", "slug", "pattern", "nlp"]
+license = "LicenseRef-Proprietary"
+homepage = "https://nanosistant.dev/packs/language"
+repository = "https://github.com/PrinceJonaa/nanosistant"
+functions = 18
+test_coverage = "100%"
+
+[pack.routing]
+keywords = [
+  "word count", "char count", "syllable", "palindrome",
+  "edit distance", "levenshtein", "similarity", "tokenize",
+  "ngram", "n-gram", "token frequency", "type token ratio",
+  "camel case", "snake case", "slug", "identifier", "slugify"
+]
+semantic_description = "String and language analysis: word counts, syllables, edit distance, tokenization, n-grams, case conversion, slugify"
+confidence_threshold = 0.70
