@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install toml-cli
         run: pip install toml-cli 2>/dev/null || pip3 install toml 2>/dev/null; cargo install toml-validator --quiet 2>/dev/null || true
