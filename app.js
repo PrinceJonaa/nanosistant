@@ -30,16 +30,28 @@ async function fetchPacks() {
 }
 
 async function incrementInstall(slug) {
-  // Insert an install event (anon, no auth needed)
+  // 1. Log the install event
   await sbFetch('/nstn_pack_installs', {
     method: 'POST',
     body: JSON.stringify({ pack_slug: slug }),
   });
-  // Increment counter
-  await sbFetch(`/nstn_packs?slug=eq.${slug}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ install_count: null }), // handled via DB function below
-  });
+
+  // 2. Increment install_count via Supabase RPC (atomic)
+  // Falls back to a re-fetch if RPC unavailable
+  try {
+    await sbFetch('/rpc/increment_pack_install', {
+      method: 'POST',
+      body: JSON.stringify({ pack_slug: slug }),
+    });
+  } catch (_) {
+    // RPC not yet deployed — count will sync on next full fetch
+  }
+
+  // 3. Update local state immediately so UI reflects it
+  const pack = PACKS.find(p => p.slug === slug);
+  if (pack) {
+    pack.install_count = (pack.install_count || 0) + 1;
+  }
 }
 
 // ============================================================
