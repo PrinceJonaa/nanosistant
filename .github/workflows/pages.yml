@@ -1,0 +1,26 @@
+name: Deploy Hub to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hub/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy hub/ to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./hub
+          publish_branch: gh-pages
+          exclude_assets: '.github'
+          commit_message: 'deploy: update NSTN Hub'
