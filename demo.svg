@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="828" viewBox="0 0 800 828">
+  <defs>
+    <style>
+      text { font-family: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', monospace; font-size: 13px; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="828" fill="#0a0e17" rx="8"/>
+  
+  <!-- Window chrome -->
+  <rect width="800" height="32" fill="#111827" rx="8"/>
+  <rect y="24" width="800" height="8" fill="#111827"/>
+  <circle cx="16" cy="16" r="5" fill="#ff5f57"/>
+  <circle cx="32" cy="16" r="5" fill="#febc2e"/>
+  <circle cx="48" cy="16" r="5" fill="#28c840"/>
+  <text x="400" y="20" fill="#6b7894" text-anchor="middle" font-size="11">nanosistant</text>
+  
+  <text x="20" y="40" fill="#e0e6f0" opacity="0" id="l0">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="0.00s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="62" fill="#00c8c8" opacity="0" id="l1">
+      Nanosistant v0.7.0
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="0.20s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="84" fill="#6b7894" opacity="0" id="l2">
+      Sovereignty-first personal AI OS
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="0.40s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="106" fill="#e0e6f0" opacity="0" id="l3">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="0.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="128" fill="#ffc850" opacity="0" id="l4">
+    $ nanosistant -p 'c major scale'
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="0.80s" fill="freeze"/>
+  </text>
+  <rect x="271.6" y="116" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="0.80s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="150" fill="#6b7894" opacity="0" id="l5">
+    ⟨◉⟩ Resolving deterministically...
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="1.20s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="172" fill="#50dc96" opacity="0" id="l6">
+    ✓ C major scale: C - D - E - F - G - A - B  [0 tokens]
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="1.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="194" fill="#e0e6f0" opacity="0" id="l7">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="2.00s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="216" fill="#ffc850" opacity="0" id="l8">
+    $ nanosistant -p '140 bpm bar duration'
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="2.20s" fill="freeze"/>
+  </text>
+  <rect x="326.2" y="204" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="2.20s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="238" fill="#50dc96" opacity="0" id="l9">
+    ✓ At 140 BPM (4/4): one bar = 1.714s  [0 tokens]
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="2.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="260" fill="#e0e6f0" opacity="0" id="l10">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="3.00s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="282" fill="#ffc850" opacity="0" id="l11">
+    $ nanosistant -p 'black scholes ATM call 20% vol 1yr'
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="3.20s" fill="freeze"/>
+  </text>
+  <rect x="435.4" y="270" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="3.20s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="304" fill="#50dc96" opacity="0" id="l12">
+    ✓ $7.97  [0 tokens · Black-Scholes formula]
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="3.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="326" fill="#e0e6f0" opacity="0" id="l13">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="4.00s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="348" fill="#ffc850" opacity="0" id="l14">
+    $ nanosistant -p 'help me write a verse about sovereignty'
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="4.20s" fill="freeze"/>
+  </text>
+  <rect x="474.4" y="336" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="4.20s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="370" fill="#6b7894" opacity="0" id="l15">
+    ⟨◦⟩ Tier 0: deterministic → None
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="4.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="392" fill="#6b7894" opacity="0" id="l16">
+    ⟨●⟩ Tier 1: AC match 'verse' → music agent  (0.87)
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="4.90s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="414" fill="#b478ff" opacity="0" id="l17">
+    ⟨◉⟩ Routing to music domain...
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="5.20s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="436" fill="#e0e6f0" opacity="0" id="l18">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="5.60s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="458" fill="#ffc850" opacity="0" id="l19">
+    $ nanosistant
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="5.80s" fill="freeze"/>
+  </text>
+  <rect x="123.4" y="446" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="5.80s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="480" fill="#ffc850" opacity="0" id="l20">
+    ▸ /cost
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="6.20s" fill="freeze"/>
+  </text>
+  <rect x="76.6" y="468" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="6.20s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="502" fill="#50dc96" opacity="0" id="l21">
+      Tokens used: 847  |  Deterministic calls: 12  |  LLM calls: 3
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="6.50s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="524" fill="#50dc96" opacity="0" id="l22">
+      Estimated cost: $0.0042  |  Saved ~$0.18 via deterministic routing
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="6.70s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="546" fill="#e0e6f0" opacity="0" id="l23">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="7.00s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="568" fill="#ffc850" opacity="0" id="l24">
+    ▸ /compact
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="7.20s" fill="freeze"/>
+  </text>
+  <rect x="100.0" y="556" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="7.20s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="590" fill="#50dc96" opacity="0" id="l25">
+      Session compacted: 14 turns → 2-turn summary
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="7.50s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="612" fill="#e0e6f0" opacity="0" id="l26">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="7.80s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="634" fill="#ffc850" opacity="0" id="l27">
+    $ nanosistant install finance-quant
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="8.00s" fill="freeze"/>
+  </text>
+  <rect x="295.0" y="622" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="8.00s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="656" fill="#50dc96" opacity="0" id="l28">
+      ✓ finance-quant v0.7.0  ─  24 functions · 100% tests · 0 tokens
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="8.40s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="678" fill="#e0e6f0" opacity="0" id="l29">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="8.80s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="700" fill="#ffc850" opacity="0" id="l30">
+    $ cargo test --workspace
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="9.00s" fill="freeze"/>
+  </text>
+  <rect x="209.2" y="688" width="7" height="14" fill="#ffc850" opacity="0">
+      <animate attributeName="opacity" values="1;1;0;0" dur="0.8s" begin="9.00s" repeatCount="3"/>
+    </rect>  
+  <text x="20" y="722" fill="#50dc96" opacity="0" id="l31">
+      test result: ok. 840 passed; 0 failed; 4 ignored
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="9.50s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="744" fill="#e0e6f0" opacity="0" id="l32">
+    
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="9.80s" fill="freeze"/>
+  </text>
+    
+  <text x="20" y="766" fill="#00c8c8" opacity="0" id="l33">
+      github.com/PrinceJonaa/nanosistant
+    <animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="10.00s" fill="freeze"/>
+  </text>
+  
+  <!-- Loop restart marker -->
+  <rect x="0" y="0" width="0" height="0">
+    <animate attributeName="width" values="0" dur="12.0s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+</svg>
