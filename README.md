@@ -193,7 +193,7 @@ deterministic = true
 
 ### Browse and publish packs
 
-→ [NSTN Hub](https://www.perplexity.ai/computer/a/nstn-hub-Z1X8W_6UR.aaR2MVFuRbYw) — browse, install, and contribute packs  
+→ [NSTN Hub](https://princejonaa.github.io/nstn-hub/) — browse, install, and contribute packs  
 → See [CONTRIBUTING.md](CONTRIBUTING.md) for the pack submission checklist
 
 ---
