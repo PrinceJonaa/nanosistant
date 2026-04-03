@@ -6,83 +6,84 @@
 [![Tests](https://img.shields.io/badge/tests-840%20passing-green)](https://github.com/PrinceJonaa/nanosistant/actions)
 [![License](https://img.shields.io/badge/license-proprietary-blue)](LICENSE)
 
-**Sovereignty-first personal AI system written in Rust. Deterministic by default — LLM only when nothing else will do.**
+Most AI systems reach for a language model first. Nanosistant reaches for one last.
 
-Nanosistant is a three-tier distributed AI runtime with a 7-tier confidence-ladder router, 14 deterministic function packs, a typed memory system, and a community pack registry — all running on hardware you control, with no vendor lock-in.
+It's a personal AI runtime built in Rust — three tiers, eight routing layers, 316 deterministic functions, and a typed memory system. Before any token gets spent, your query passes through a confidence ladder of pure math: Aho-Corasick, regex, fuzzy matching, domain scoring. The LLM only fires when every deterministic path has genuinely failed to answer. The orchestrator is always code. It never hands control to a prompt.
 
-→ **[NSTN Hub](https://princejonaa.github.io/nanosistant/)** — browse and install deterministic function packs
+→ **[NSTN Hub](https://princejonaa.github.io/nanosistant/)** — browse and install community packs
 
 ---
 
-## How It Works
+## The Confidence Ladder
 
-Every query passes through a deterministic confidence ladder. Tiers short-circuit upward the moment a confident answer is found. The LLM is tier 7 — the last resort, not the first.
+Every query travels the same path. Each tier short-circuits the moment it's confident — the ones below it never run.
 
 ```
 Query
   │
   ▼
-① Deterministic functions ─── O(1)     BPM math, chord lookup, date calc, geospatial → instant answer
-② Aho-Corasick automaton ──── O(n+z)   Exact keyword/phrase patterns
-③ Compiled regex bank ──────── O(n×R)   Morphological variants (refactoring, compilation…)
-④ Weighted keyword map ──────── O(n)    Dynamic domain scoring, updatable at runtime
-⑤ Fuzzy / Levenshtein ──────── O(n×A)  Typo recovery: "refactr" → "refactor"
-⑥ Combined score ─────────────   —     Weighted blend of tiers 1–4
-⑦ ruflo MCP ──────────────────   —     Q-learning policy, Mixture-of-Experts, semantic routing
-⑧ LLM classifier ─────────────   —     Escape hatch for genuine ambiguity only
+① Deterministic packs ─── O(1)      316 pure functions across 14 domains — no tokens, no latency
+② Aho-Corasick ─────────── O(n+z)   Exact keyword and phrase matching at line speed
+③ Regex bank ───────────── O(n×R)   Morphological variants — catches "refactoring", "compiling", etc.
+④ Weighted keywords ─────── O(n)    Domain scoring updated dynamically at runtime
+⑤ Fuzzy / Levenshtein ───── O(n×A)  Typo recovery: "trnaspose" → "transpose"
+⑥ Combined score ───────────  —     Weighted blend of tiers 2–5
+⑦ ruflo MCP ────────────────  —     Q-learning policy, Mixture-of-Experts, semantic routing
+⑧ LLM classifier ──────────   —     True last resort — only fires on genuine ambiguity
 ```
 
-**The orchestrator is always Rust code. It never delegates control to a prompt.**
+Tiers 1–6 are deterministic and stateless. Tier 7 is ruflo — an MCP runtime with Q-learning and 205+ tools, running as a child process that Rust spawns and controls. Tier 8 is the LLM — powerful, expensive, and rarely needed.
 
 ---
 
 ## Architecture
 
+The system runs as three tiers connected by gRPC and protobuf contracts. No tier imports another's internals. Boundaries are enforced at the type level.
+
 ```
 User (iOS · CLI · HTTP)
     │
-    ▼  HTTPS / gRPC / CLI
-┌───────────────────────────────────────┐
-│        NanoClaw  ·  Edge Tier         │
-│  Local-first · Offline queue          │
-│  iOS Swift client (NanoClawKit)       │
-└──────────────────┬────────────────────┘
-                   │ gRPC + protobuf
-                   ▼
-┌───────────────────────────────────────┐
-│          RuFlo  ·  Brain Tier         │
-│                                       │
-│  Confidence ladder (tiers 1–8)        │
-│  ruflo MCP bridge (Q-learning/MoE)    │
-│  Memory: L0 → L1 → L2 → L3           │
-│  Watchdog · Budget · Dreamer          │
-│  Typed-IR validation                  │
-└──────────────────┬────────────────────┘
-                   │ gRPC + protobuf
-                   ▼
-┌───────────────────────────────────────┐
-│       RuVector  ·  Knowledge Tier     │
-│  Qdrant · Hash embeddings · RAG       │
-└───────────────────────────────────────┘
+    ▼  gRPC / protobuf
+┌────────────────────────────────────┐
+│   NanoClaw  ·  Edge                │
+│   Local-first, offline queue       │
+│   NanoClawKit iOS Swift client     │
+└──────────────┬─────────────────────┘
+               │ gRPC
+               ▼
+┌────────────────────────────────────┐
+│   RuFlo  ·  Brain                  │
+│   Confidence ladder (tiers 1–8)    │
+│   ruflo MCP bridge                 │
+│   Memory L0 → L1 → L2 → L3        │
+│   Watchdog · Budget · Dreamer      │
+│   Typed-IR validation              │
+└──────────────┬─────────────────────┘
+               │ gRPC
+               ▼
+┌────────────────────────────────────┐
+│   RuVector  ·  Knowledge           │
+│   Qdrant, hash embeddings, RAG     │
+└────────────────────────────────────┘
 ```
 
-| Tier | Crate | Role |
-|------|-------|------|
-| **Edge** — NanoClaw | `nstn-nanoclaw` | Local-first resolution, offline queue, sync-on-connect, iOS client |
-| **Brain** — RuFlo | `nstn-ruflo` | Confidence-ladder router, ruflo MCP bridge, budget, watchdog, dreamer |
-| **Knowledge** — RuVector | `nstn-ruvector` | Qdrant vector store, hash embeddings, document ingestion, domain RAG |
+| Tier | Crate | What it owns |
+|------|-------|-------------|
+| **Edge** — NanoClaw | `nstn-nanoclaw` | Local resolution, offline queue, sync-on-connect, iOS client |
+| **Brain** — RuFlo | `nstn-ruflo` | Router, memory, budget, watchdog, dreamer, typed-IR |
+| **Knowledge** — RuVector | `nstn-ruvector` | Vector store, embeddings, document ingestion, domain RAG |
 
 ---
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
 - **Rust 1.75+** — [rustup.rs](https://rustup.rs)
 - **protoc** — `brew install protobuf` / `sudo apt install protobuf-compiler`
-- **Node.js 20+** _(optional)_ — only needed for live ruflo MCP routing
+- **Node.js 20+** _(optional)_ — only required for live ruflo MCP routing at tier 7
 
-### Clone and Build
+### Install
 
 ```bash
 git clone --recurse-submodules https://github.com/PrinceJonaa/nanosistant.git
@@ -90,18 +91,14 @@ cd nanosistant
 cargo build --workspace
 ```
 
-### Run the CLI
+### Run
 
 ```bash
+# Interactive REPL — vim keybindings, markdown rendering, 28 slash commands
 cargo run --bin nanosistant
-```
 
-The `nanosistant` binary starts an interactive REPL with vim keybindings, markdown rendering, syntax highlighting, and 28 slash commands (`--help` for all flags).
-
-### Pipe mode
-
-```bash
-echo "BPM duration of 120bpm in 4/4?" | cargo run --bin nanosistant
+# Pipe mode
+echo "what are the delay times at 140 BPM?" | cargo run --bin nanosistant
 ```
 
 ### Verify
@@ -112,7 +109,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-### Docker (full stack + Qdrant)
+### Docker (full stack with Qdrant)
 
 ```bash
 docker compose up
@@ -122,51 +119,50 @@ docker compose up
 
 ## Model Providers
 
-Any OpenAI-compatible provider works. Set via environment variables or `config/settings.toml`:
+Nanosistant works with any OpenAI-compatible provider. Configure via `config/settings.toml` or environment variables:
 
-| Provider | Env var | Example model |
-|----------|---------|---------------|
+| Provider | Env var | Model |
+|----------|---------|-------|
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-opus-4-5` |
 | OpenAI | `OPENAI_API_KEY` | `gpt-4o` |
 | Azure OpenAI | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` | `gpt-4o` |
 | xAI (Grok) | `XAI_API_KEY` | `grok-3` |
-| Ollama (local) | _(none — set base URL)_ | `llama3.2`, `qwen2.5-coder` |
+| Ollama (local) | _(set base URL, no key needed)_ | `llama3.2`, `qwen2.5-coder` |
 
 ```toml
 # config/settings.toml
 [model]
 default  = "claude-opus-4-5"
-fallback = "llama3.2"   # used offline
+fallback = "llama3.2"   # used when offline
 ```
 
-Runtime override: `nanosistant --model ollama/llama3.2`
+Override at runtime: `nanosistant --model ollama/llama3.2`
 
 ---
 
-## Pack System
+## Packs
 
-Packs are portable bundles of deterministic functions and routing rules. A pack ships as a TOML rule file, a compiled Rust fn, or both. The community publishes and installs packs through [NSTN Hub](https://princejonaa.github.io/nanosistant/).
+A pack is a portable bundle of deterministic functions and routing rules. It can be a TOML rule file, a compiled Rust fn, or both. Packs are installed locally — they extend the confidence ladder's tier 1 without touching any other layer.
 
-### Install a pack
+The community registry lives at [NSTN Hub](https://princejonaa.github.io/nanosistant/).
+
+### Using packs
 
 ```bash
 nanosistant /packs install nstn-music
-nanosistant /packs install nstn-finance
 nanosistant /packs list
 nanosistant /packs remove nstn-music
 ```
 
-### Pack structure
+### Writing a pack
 
 ```
 my-pack/
-├── pack.toml      # Metadata, routing triggers, compatibility
-├── rules.toml     # Declarative TOML rule evaluator (optional)
+├── pack.toml      # Metadata, routing config, compatibility range
+├── rules.toml     # Declarative rule evaluator (optional)
 └── src/
     └── lib.rs     # Native Rust functions (optional)
 ```
-
-### pack.toml
 
 ```toml
 [pack]
@@ -184,20 +180,20 @@ semantic_description = "Music theory calculations: modes, chord voicings, MIDI"
 confidence_threshold = 0.72
 ```
 
-### Submit a pack
-
-Open a PR adding your pack to `packs/` — the CI workflow validates `pack.toml` automatically. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full checklist.
+Open a PR to `packs/` — CI validates `pack.toml` automatically. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full checklist.
 
 ---
 
 ## Built-in Packs
 
-14 packs ship out of the box. All functions are pure, deterministic, and run with zero tokens.
+14 packs ship with the repo. All 316 functions are pure, stateless, and cost zero tokens.
 
 ### Universal
 
-| Pack | Functions | What it does |
-|------|-----------|-------------|
+These packs cover math and reasoning primitives that apply across every domain.
+
+| Pack | Fns | Coverage |
+|------|-----|----------|
 | `nstn-logic` | 18 | Boolean algebra, set operations, propositional calculus, inference rules |
 | `nstn-graph` | 14 | Shortest path, cycle detection, topological sort, spanning trees |
 | `nstn-information` | 10 | Shannon entropy, KL divergence, mutual information, channel capacity |
@@ -205,39 +201,43 @@ Open a PR adding your pack to `packs/` — the CI workflow validates `pack.toml`
 
 ### Domain
 
-| Pack | Functions | What it does |
-|------|-----------|-------------|
+These packs handle calculations that belong to a specific field — the kind of thing people constantly ask AI about but which never needed a language model in the first place.
+
+| Pack | Fns | Coverage |
+|------|-----|----------|
 | `nstn-music` | 28 | BPM math, bar duration, note frequencies, scales, chords, intervals |
 | `nstn-finance` | 35 | Options pricing, Sharpe ratio, compound interest, volatility, risk metrics |
-| `nstn-data` | 30 | Descriptive stats, correlation, percentiles, z-scores, normalization, outlier detection |
+| `nstn-data` | 30 | Descriptive stats, correlation, percentiles, z-scores, normalization, outliers |
 | `nstn-time` | 24 | Timezone conversion, duration arithmetic, calendar calculations, ISO 8601 |
-| `nstn-text` | 20 | Word count, readability scores, syllables, character frequency, text similarity |
+| `nstn-text` | 20 | Word count, readability scores, syllables, character frequency, similarity |
 | `nstn-code` | 25 | Semver parsing/comparison, base64/hex encoding, hashing, UUID generation |
 | `nstn-geo` | 18 | Haversine distance, coordinate conversion, bounding boxes, bearing |
-| `nstn-physics` | 32 | Kinematics, thermodynamics, optics, electromagnetism, SI/imperial conversions |
-| `nstn-health` | 20 | BMI, BMR, target heart rate, VO2 max, calorie estimation, body fat |
-| `nstn-social` | 16 | Engagement rates, influence scoring, centrality measures, community metrics |
+| `nstn-physics` | 32 | Kinematics, thermodynamics, optics, electromagnetism, unit conversions |
+| `nstn-health` | 20 | BMI, BMR, target heart rate, VO2 max, calorie estimation, macros |
+| `nstn-social` | 16 | Engagement rates, influence scoring, centrality measures, network metrics |
 
-**316 functions total · 100% test coverage on all 14 packs · zero tokens per call**
+**316 functions · 100% test coverage across all 14 packs · $0.00 per call**
 
 ---
 
-## Memory System
+## Memory
 
-| Level | Name | Scope | Persistence |
-|-------|------|-------|-------------|
-| **L0** | Working | Single turn | In-process — slot-limited, evicted on turn completion |
-| **L1** | Episodic | Session | JSON on disk — full message history per session |
-| **L2** | Semantic | Domain | Qdrant / in-memory — vector-embedded domain knowledge |
-| **L3** | Identity | Operator | Config + TOML — system prompt, persona, operator rules |
+Nanosistant maintains four memory levels. Each one has a different scope, lifetime, and backing store — and each one is explicitly typed so nothing leaks between them.
 
-When a session ends, a consolidation loop replays L1 episodes, detects MAST failure patterns (StuckLoop, TokenWaste, HandoffFailure, BudgetBlindness, SpecRepetition), and promotes durable knowledge to L2. The watchdog monitors live sessions for the same patterns and fires circuit breakers before they compound.
+| Level | Name | Scope | How it persists |
+|-------|------|-------|-----------------|
+| **L0** | Working | Single turn | In-process. Slot-limited. Evicted when the turn ends. |
+| **L1** | Episodic | Session | JSON on disk. Full message history. Load, save, delete, resume. |
+| **L2** | Semantic | Domain | Qdrant or in-memory. Vector-embedded knowledge, queried on every turn. |
+| **L3** | Identity | Operator | Config + TOML. System prompt, persona, operator rules. Immutable at runtime. |
+
+At the end of each session, a consolidation loop replays L1 and looks for five failure patterns from the MAST taxonomy: StuckLoop, TokenWaste, HandoffFailure, BudgetBlindness, SpecRepetition. Anything worth keeping gets promoted to L2. The same watchdog runs live during sessions and trips circuit breakers before failures compound.
 
 ---
 
 ## Slash Commands
 
-28 slash commands built into the REPL:
+The REPL ships 28 built-in commands:
 
 | Category | Commands |
 |----------|---------|
@@ -251,106 +251,98 @@ When a session ends, a consolidation loop replays L1 episodes, detects MAST fail
 
 ## Crates
 
-| Crate | Package | Description |
+| Crate | Package | What it does |
 |-------|---------|-------------|
-| `crates/common` | `nstn-common` | Deterministic modules (all 14), confidence-ladder router, domain classifier, proto types |
-| `crates/runtime` | `nstn-runtime` | ConversationRuntime — agent loop, hooks, permissions, sessions, compaction, usage tracking |
-| `crates/api` | `nstn-api` | LLM API client — Anthropic + OpenAI-compatible, SSE streaming |
-| `crates/tools` | `nstn-tools` | Tool definitions (bash, file ops, web, search), execution framework |
+| `crates/common` | `nstn-common` | All 14 deterministic modules, confidence-ladder router, domain classifier, proto types |
+| `crates/runtime` | `nstn-runtime` | Agent loop, hooks, permissions, sessions, compaction, usage tracking |
+| `crates/api` | `nstn-api` | LLM client — Anthropic + OpenAI-compatible, SSE streaming |
+| `crates/tools` | `nstn-tools` | Tool definitions (bash, file ops, web, search) and execution framework |
 | `crates/plugins` | `nstn-plugins` | Plugin system with pre/post hook pipeline |
 | `crates/ruflo` | `nstn-ruflo` | Orchestrator, confidence ladder, ruflo MCP bridge, budget, watchdog, dreamer |
 | `crates/nanoclaw` | `nstn-nanoclaw` | Edge runtime, gRPC client, offline queue, sync-on-connect |
-| `crates/ruvector` | `nstn-ruvector` | Qdrant vector store, hash embeddings, document ingestion, domain-filtered search |
+| `crates/ruvector` | `nstn-ruvector` | Qdrant vector store, hash embeddings, document ingestion, domain search |
 | `crates/server` | `nstn-server` | axum HTTP/SSE server, health endpoint |
 | `crates/packs` | `nstn-packs` | Pack loader, TOML rule evaluator, Rust fn registry, marketplace client |
 | `crates/memory` | `nstn-memory` | L0–L3 memory types, consolidation loop, MAST watchdog |
-| `crates/cli` | `nstn-cli` | REPL, vim keybindings, markdown render, slash command registry |
-| `crates/proto` | `nstn-proto` | Protobuf codegen (tonic-build) |
-| `crates/typed-ir` | `nstn-typed-ir` | Typed intermediate representation — LLM proposal validation |
+| `crates/cli` | `nstn-cli` | REPL, vim keybindings, markdown rendering, slash command registry |
+| `crates/proto` | `nstn-proto` | Protobuf codegen via tonic-build |
+| `crates/typed-ir` | `nstn-typed-ir` | Typed intermediate representation — validates LLM proposals before execution |
 | `clients/ios` | `NanoClawKit` | Swift Package — iOS 17+ / macOS 14+ edge client |
 
 **14 Rust crates · 1 Swift package · 840 tests · 54,000+ lines**
 
 ---
 
-## Project Structure
+## Project Layout
 
 ```
 nanosistant/
-├── Cargo.toml             # Workspace root
-├── README.md
-├── CONTRIBUTING.md        # Setup, standards, pack submission checklist
-├── CHANGELOG.md           # Full version history
-├── AGENTS.md              # Multi-agent development workflow
-├── SECURITY.md
-├── CODE_OF_CONDUCT.md
-├── LICENSE                # Proprietary — Intervised LLC
-├── proto/                 # Protobuf contracts (all tier boundaries)
+├── Cargo.toml
+├── proto/                 # Protobuf contracts — the only interface between tiers
 ├── config/
-│   ├── agents/            # Domain agent TOML configs
-│   ├── prompts/           # System prompts per domain
-│   ├── ingestion.toml
-│   └── settings.toml
+│   ├── settings.toml      # Global config: model, memory, budget
+│   ├── agents/            # Per-domain agent configs
+│   └── prompts/           # System prompts per domain
 ├── crates/                # 14 Rust crates
 ├── clients/
 │   └── ios/NanoClawKit/   # Swift Package
-├── packs/                 # Built-in pack registry
-│   ├── universal/         # logic, graph, information, probability
-│   └── domain/            # music, finance, data, time, text, code, geo, physics, health, social
-├── hub/                   # NSTN Hub static site (GitHub Pages)
+├── packs/
+│   ├── universal/         # logic · graph · information · probability
+│   └── domain/            # music · finance · data · time · text · code · geo · physics · health · social
+├── hub/                   # NSTN Hub — static site served via GitHub Pages
 ├── vendor/
-│   └── ruflo/             # git submodule — github.com/ruvnet/ruflo
-├── tests/
-│   └── integration/
+│   └── ruflo/             # git submodule: github.com/ruvnet/ruflo
+├── tests/integration/
 └── .github/
-    ├── workflows/          # CI, release, security audit, pages, pack validation
-    ├── ISSUE_TEMPLATE/     # 5 issue forms
-    └── PULL_REQUEST_TEMPLATE.md
+    ├── workflows/         # CI, release, security, pages, pack validation
+    └── ISSUE_TEMPLATE/
 ```
 
 ---
 
-## ruflo Integration
+## ruflo
 
-[ruflo](https://github.com/ruvnet/ruflo) runs as a git submodule under `vendor/ruflo`. The Rust orchestrator spawns ruflo as a child process and communicates over JSON-RPC 2.0 via stdio (MCP protocol). Rust is always the entry point and always the exit point — ruflo extends capability without ever receiving traffic directly.
+[ruflo](https://github.com/ruvnet/ruflo) is a SOTA MCP runtime with Q-learning policy routing, Mixture-of-Experts model selection, semantic tool search, and 205+ registered tools. It runs as a git submodule under `vendor/ruflo`.
 
-When the confidence ladder returns `Ambiguous`, ruflo fires: Q-learning policy selection, Mixture-of-Experts model routing, semantic embedding search, and 205+ registered MCP tools.
+Nanosistant spawns ruflo as a child process and speaks to it over JSON-RPC 2.0 via stdio. Rust is the entry point. Rust is the exit point. ruflo never receives a request directly — it only runs when the Rust orchestrator decides tier 7 is warranted and hands it a scoped task. Control always returns to Rust.
 
-Ruflo is optional. Without Node.js, the orchestrator falls back to the LLM classifier at tier 8.
+If Node.js isn't available, the system falls back to the LLM at tier 8. ruflo is powerful but optional.
 
 ---
 
 ## Roadmap
 
-| Version | Status | Highlights |
-|---------|--------|------------|
-| **v0.1** | ✓ | 3-tier architecture, confidence ladder, ruflo MCP, 30+ deterministic functions |
-| **v0.2** | ✓ | Real gRPC (tonic), Qdrant, hash embeddings, MCP tool server, ruflo swarm |
-| **v0.3** | ✓ | iOS NanoClawKit Swift client, knowledge ingestion pipeline, session persistence, Docker |
-| **v0.4** | ✓ | Full MCP client (6 transports), filesystem sandbox, 28 slash commands, OAuth PKCE, LSP |
-| **v0.5** | ✓ | Live LLM API end-to-end, ruflo MCP live routing, gRPC in Swift, cross-device session sync |
-| **v0.6** | ✓ | L0–L3 typed memory, Dreamer consolidation loop, MAST watchdog, Typed-IR, 7 domain det/ modules |
-| **v0.7** | ✓ | nstn-packs crate, all 14 universal/domain packs, operator tier TOML runtime, NSTN Hub, 840 tests |
-| **v0.8** | Next | Public pack registry API, multi-operator federation, WASM pack sandbox, community hub integration |
+| Version | Status | What shipped |
+|---------|--------|-------------|
+| v0.1 | ✓ | 3-tier architecture, confidence ladder, ruflo MCP, 30+ deterministic functions |
+| v0.2 | ✓ | Real gRPC (tonic), Qdrant, hash embeddings, MCP tool server, ruflo swarm coordination |
+| v0.3 | ✓ | iOS NanoClawKit (Swift), knowledge ingestion pipeline, session persistence, Docker |
+| v0.4 | ✓ | Full MCP client (6 transports), filesystem sandbox, 28 slash commands, OAuth PKCE, LSP |
+| v0.5 | ✓ | Live LLM API end-to-end, ruflo live routing, native gRPC in Swift, cross-device sync |
+| v0.6 | ✓ | L0–L3 typed memory, Dreamer consolidation loop, MAST watchdog, Typed-IR, 7 domain modules |
+| v0.7 | ✓ | All 14 packs, nstn-packs crate, operator TOML runtime, NSTN Hub, 840 tests |
+| v0.8 | next | Public pack registry API, multi-operator federation, WASM pack sandbox |
 
 ---
 
-## Design Principles
+## Principles
 
-1. **Sovereignty** — All data stays on user-controlled infrastructure. No vendor lock-in.
-2. **Deterministic backbone** — The orchestrator is code, not a prompt. LLMs propose; Rust decides.
-3. **Presence over performance** — Collapse the distance between intention and execution.
-4. **Typed boundaries** — Protobuf at every tier boundary. Crates never import across tier lines.
-5. **Subtraction before addition** — Build when pain demands it, not speculatively.
-6. **Produce the artifact** — Ship the thing, not a report about the thing.
+These aren't aspirational — they're the constraints the codebase was built around.
+
+1. **Sovereignty** — Data stays on hardware you control. No cloud dependency, no vendor lock-in.
+2. **Deterministic backbone** — The orchestrator is code, not a prompt. LLMs propose. Rust decides.
+3. **Presence over performance** — Minimize the distance between what you intend and what executes.
+4. **Typed boundaries** — Protobuf at every tier crossing. Crates don't reach into each other's internals.
+5. **Subtraction before addition** — Build when pain demands it. Remove before you add.
+6. **Produce the artifact** — Ship the thing. Not a plan. Not a report. The thing.
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, code standards, architecture rules, and the full pack submission checklist.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code standards, architecture rules, and the pack submission checklist.
 
-Questions, ideas, or pack showcase → [GitHub Discussions](https://github.com/PrinceJonaa/nanosistant/discussions)
+For questions or to share what you've built — [GitHub Discussions](https://github.com/PrinceJonaa/nanosistant/discussions).
 
 ---
 
@@ -358,7 +350,7 @@ Questions, ideas, or pack showcase → [GitHub Discussions](https://github.com/P
 
 Copyright © 2026 Prince Jona / Intervised LLC. All rights reserved.
 
-Source-available. Open-source release planned. See [LICENSE](LICENSE) for details.
+Source-available. Open-source release is planned. See [LICENSE](LICENSE).
 
 ---
 
