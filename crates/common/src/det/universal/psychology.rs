@@ -7,9 +7,13 @@
 /// Mean of Likert-scale responses.  Returns `None` if any response is outside `1..=scale`.
 #[must_use]
 pub fn likert_mean(responses: &[u8], scale: u8) -> Option<f64> {
-    if responses.is_empty() { return None; }
+    if responses.is_empty() {
+        return None;
+    }
     for &r in responses {
-        if r < 1 || r > scale { return None; }
+        if r < 1 || r > scale {
+            return None;
+        }
     }
     #[allow(clippy::cast_precision_loss)]
     Some(responses.iter().map(|&r| r as f64).sum::<f64>() / responses.len() as f64)
@@ -21,8 +25,12 @@ pub fn likert_mean(responses: &[u8], scale: u8) -> Option<f64> {
 pub fn likert_std(responses: &[u8], scale: u8) -> Option<f64> {
     let mean = likert_mean(responses, scale)?;
     #[allow(clippy::cast_precision_loss)]
-    let variance = responses.iter()
-        .map(|&r| { let d = r as f64 - mean; d * d })
+    let variance = responses
+        .iter()
+        .map(|&r| {
+            let d = r as f64 - mean;
+            d * d
+        })
         .sum::<f64>()
         / responses.len() as f64;
     Some(variance.sqrt())
@@ -37,11 +45,17 @@ pub fn likert_std(responses: &[u8], scale: u8) -> Option<f64> {
 #[must_use]
 pub fn cronbach_alpha(item_scores: &[Vec<f64>]) -> Option<f64> {
     let k = item_scores.len();
-    if k < 2 { return None; }
+    if k < 2 {
+        return None;
+    }
     let n = item_scores[0].len();
-    if n < 2 { return None; }
+    if n < 2 {
+        return None;
+    }
     // Ensure all items have the same number of responses
-    if item_scores.iter().any(|v| v.len() != n) { return None; }
+    if item_scores.iter().any(|v| v.len() != n) {
+        return None;
+    }
 
     #[allow(clippy::cast_precision_loss)]
     let pop_var = |v: &[f64]| -> f64 {
@@ -57,7 +71,9 @@ pub fn cronbach_alpha(item_scores: &[Vec<f64>]) -> Option<f64> {
         .collect();
     let var_total = pop_var(&totals);
 
-    if var_total == 0.0 { return None; }
+    if var_total == 0.0 {
+        return None;
+    }
 
     #[allow(clippy::cast_precision_loss)]
     Some((k as f64 / (k as f64 - 1.0)) * (1.0 - sum_item_var / var_total))
@@ -68,7 +84,9 @@ pub fn cronbach_alpha(item_scores: &[Vec<f64>]) -> Option<f64> {
 /// Returns a vector of zeros if standard deviation is zero.
 #[must_use]
 pub fn z_score_normalize(scores: &[f64]) -> Vec<f64> {
-    if scores.is_empty() { return Vec::new(); }
+    if scores.is_empty() {
+        return Vec::new();
+    }
     #[allow(clippy::cast_precision_loss)]
     let n = scores.len() as f64;
     let mean: f64 = scores.iter().sum::<f64>() / n;
@@ -84,7 +102,9 @@ pub fn z_score_normalize(scores: &[f64]) -> Vec<f64> {
 /// Formula: (number of scores strictly below `score` / N) * 100.
 #[must_use]
 pub fn percentile_rank_score(score: f64, population: &[f64]) -> f64 {
-    if population.is_empty() { return 0.0; }
+    if population.is_empty() {
+        return 0.0;
+    }
     #[allow(clippy::cast_precision_loss)]
     let below = population.iter().filter(|&&x| x < score).count() as f64;
     (below / population.len() as f64) * 100.0
@@ -108,7 +128,9 @@ pub fn longest_streak(events: &[bool]) -> usize {
     for &e in events {
         if e {
             current += 1;
-            if current > longest { longest = current; }
+            if current > longest {
+                longest = current;
+            }
         } else {
             current = 0;
         }
@@ -121,7 +143,9 @@ pub fn longest_streak(events: &[bool]) -> usize {
 /// Returns `0.0` when `total` is zero.
 #[must_use]
 pub fn habit_score(completed: u32, total: u32) -> f64 {
-    if total == 0 { return 0.0; }
+    if total == 0 {
+        return 0.0;
+    }
     #[allow(clippy::cast_precision_loss)]
     let score = completed as f64 / total as f64 * 100.0;
     score
@@ -133,12 +157,21 @@ pub fn habit_score(completed: u32, total: u32) -> f64 {
 /// Returns `0.0` if mean is zero or the slice is empty.
 #[must_use]
 pub fn consistency_score(daily_scores: &[f64]) -> f64 {
-    if daily_scores.is_empty() { return 0.0; }
+    if daily_scores.is_empty() {
+        return 0.0;
+    }
     #[allow(clippy::cast_precision_loss)]
     let n = daily_scores.len() as f64;
     let mean: f64 = daily_scores.iter().sum::<f64>() / n;
-    if mean == 0.0 { return 0.0; }
-    let std: f64 = (daily_scores.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n).sqrt();
+    if mean == 0.0 {
+        return 0.0;
+    }
+    let std: f64 = (daily_scores
+        .iter()
+        .map(|&x| (x - mean).powi(2))
+        .sum::<f64>()
+        / n)
+        .sqrt();
     (1.0 - std / mean).clamp(0.0, 1.0)
 }
 
@@ -181,7 +214,9 @@ pub fn working_memory_fit(chunk_count: usize) -> bool {
 /// Returns `initial` unchanged if `half_life_minutes <= 0.0`.
 #[must_use]
 pub fn attention_decay(initial: f64, elapsed_minutes: f64, half_life_minutes: f64) -> f64 {
-    if half_life_minutes <= 0.0 { return initial; }
+    if half_life_minutes <= 0.0 {
+        return initial;
+    }
     initial * (0.5f64).powf(elapsed_minutes / half_life_minutes)
 }
 
@@ -192,7 +227,9 @@ pub fn attention_decay(initial: f64, elapsed_minutes: f64, half_life_minutes: f6
 /// Returns `0.0` if `wpm <= 0.0`.
 #[must_use]
 pub fn reading_span_estimate(wpm: f64, text_words: usize) -> f64 {
-    if wpm <= 0.0 { return 0.0; }
+    if wpm <= 0.0 {
+        return 0.0;
+    }
     #[allow(clippy::cast_precision_loss)]
     let minutes = text_words as f64 / wpm;
     minutes
@@ -223,7 +260,9 @@ pub fn big_five_score(responses: &[i8]) -> [f64; 5] {
 
     let mut out = [0.0f64; TRAITS];
     for i in 0..TRAITS {
-        if counts[i] == 0 { continue; }
+        if counts[i] == 0 {
+            continue;
+        }
         // Mean in [-2, 2] → scale to [0, 100]: (mean + 2) / 4 * 100
         let mean = sums[i] / counts[i] as f64;
         out[i] = ((mean + 2.0) / 4.0 * 100.0).clamp(0.0, 100.0);
@@ -234,27 +273,45 @@ pub fn big_five_score(responses: &[i8]) -> [f64; 5] {
 /// Index of the dominant (maximum) trait score. Returns `None` if `scores` is empty.
 #[must_use]
 pub fn dominant_trait(scores: &[f64]) -> Option<usize> {
-    if scores.is_empty() { return None; }
-    scores.iter()
+    if scores.is_empty() {
+        return None;
+    }
+    scores
+        .iter()
         .enumerate()
         .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
         .map(|(i, _)| i)
 }
 
-/// Trait balance score: `1.0 - (std / max)`, clamped to `[0.0, 1.0]`.
+/// Trait balance score: `1.0 - (std / max_std)`, clamped to `[0.0, 1.0]`.
 ///
-/// A score near 1.0 means traits are evenly distributed; near 0.0 means one
-/// trait strongly dominates.  Returns `0.0` if `scores` is empty or max is zero.
+/// Normalises the population standard deviation by the theoretical maximum
+/// for `n` non-negative scores whose largest value is `max`:
+/// `max_std = max × √(n−1) / n`.  This maps the full range correctly:
+/// all-equal → 1.0, one-hot `[M, 0, …, 0]` → 0.0.
+///
+/// Returns `0.0` if `scores` is empty or max is zero.
 #[must_use]
 pub fn trait_balance_score(scores: &[f64]) -> f64 {
-    if scores.is_empty() { return 0.0; }
+    if scores.is_empty() {
+        return 0.0;
+    }
     let max = scores.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-    if max == 0.0 { return 0.0; }
+    if max == 0.0 {
+        return 0.0;
+    }
     #[allow(clippy::cast_precision_loss)]
     let n = scores.len() as f64;
+    if n < 2.0 {
+        return 1.0;
+    }
     let mean: f64 = scores.iter().sum::<f64>() / n;
     let std: f64 = (scores.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n).sqrt();
-    (1.0 - std / max).clamp(0.0, 1.0)
+    let max_std = max * (n - 1.0).sqrt() / n;
+    if max_std == 0.0 {
+        return 1.0;
+    }
+    (1.0 - std / max_std).clamp(0.0, 1.0)
 }
 
 // ═══════════════════════════════════════
@@ -291,11 +348,13 @@ mod tests {
 
     #[test]
     fn test_cronbach_alpha_perfect() {
-        // All items perfectly correlated → alpha should be 1.0
+        // Identical items → raw alpha should be 1.0.
+        // (Perfectly *correlated* but differently-scaled items give α < 1 under
+        // raw alpha; that is the correct behaviour of the unstandardised formula.)
         let items = vec![
             vec![1.0, 2.0, 3.0, 4.0],
-            vec![2.0, 4.0, 6.0, 8.0],
-            vec![3.0, 6.0, 9.0, 12.0],
+            vec![1.0, 2.0, 3.0, 4.0],
+            vec![1.0, 2.0, 3.0, 4.0],
         ];
         let alpha = cronbach_alpha(&items).unwrap();
         assert!((alpha - 1.0).abs() < 1e-6, "alpha={alpha}");
