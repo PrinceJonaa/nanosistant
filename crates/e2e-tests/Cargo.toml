@@ -1,0 +1,21 @@
+[package]
+name = "nstn-e2e-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+nstn-common = { path = "../common" }
+nstn-nanoclaw = { path = "../nanoclaw" }
+nstn-ruflo = { path = "../ruflo" }
+nstn-ruvector = { path = "../ruvector" }
+tokio.workspace = true
+tonic.workspace = true
+tokio-stream = { version = "0.1", features = ["net"] }
+tempfile = "3"
+
+[lints]
+workspace = true
