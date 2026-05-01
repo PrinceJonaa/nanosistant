@@ -129,7 +129,7 @@ jobs:
 
       - name: Comment on PR
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const conclusion = '${{ job.status }}';
